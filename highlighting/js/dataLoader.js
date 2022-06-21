@@ -2,12 +2,12 @@
 function loadScatterplotExample() {
     source_datasets = [];
     source_datasets_names = [];
-    d3.text("./data/teaser-top.csv", function (error, text) {
+    d3.text("../data/scatterplot.csv", function (error, text) {
         if (error) throw error;
         DATATYPE = "SCATTERPLOT";
-        source_datasets_names.push("teaser-top");
+        source_datasets_names.push("scatterplot");
         let labelSet = new Set();
-        if (!loadData(text, labelSet, "teaser-top")) {
+        if (!loadData(text, labelSet, "scatterplot")) {
             console.log("Loading file problem.");
             return
         }
