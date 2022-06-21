@@ -73,7 +73,7 @@ function doColorization() {
         scatterplot.append("g")
             .call(d3.axisLeft(yScale)); //.tickFormat("")
 
-        scatterplot_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[i]);
+        scatterplot_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[i] +" - All highlighted");
 
     }
 
@@ -118,7 +118,7 @@ function doColorization() {
         scatterplot.append("g")
             .call(d3.axisLeft(yScale)); //.tickFormat("")
 
-        scatterplot_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[i]);
+        scatterplot_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[i] +" - None highlighted");
 
     }
 
