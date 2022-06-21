@@ -1,1 +1,1 @@
-# autocolorization.github.io
+# Palettailor for Highlighting
