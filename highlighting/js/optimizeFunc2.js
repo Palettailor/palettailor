@@ -44,10 +44,8 @@ function doColorization() {
     let l = d3.hsl(best_color.id[class_number]).l
     console.log("final lightness = ", l);
     for (let i = 0; i < class_number; i++) {
-        let hsl = d3.hsl(used_palette[i])
-        used_palette[i + class_number] = d3.hsl(hsl.h, hsl.s, l)
         used_palette_0[i + class_number] = used_palette_0[i];
-        used_palette_1[i] = used_palette_1[i + class_number] = d3.hsl(hsl.h, hsl.s, l)
+        used_palette_1[i] = used_palette_1[i + class_number]
     }
 
     if (DATATYPE === "SCATTERPLOT") {
@@ -74,24 +72,19 @@ function doColorization() {
 function getPaletteScore(p, sign = false) {
     let class_number = p.length / 2
     let palette = p.slice(0, class_number);
-    let palette2 = palette.slice();
-    let l = d3.hsl(p[class_number]).l
-    // if (sign) console.log("l is ", l);
-    for (let i = 0; i < palette.length; i++) {
-        let hsl = d3.hsl(palette[i])
-        palette2[i] = d3.hsl(hsl.h, hsl.s, l)
-    }
+    let palette2 = p.slice(class_number, p.length);
 
     let color_dis = new Array(class_number)
-    for (let i = 0; i < class_number; i++)
+    for (let i = 0; i < class_number; i++) {
         color_dis[i] = new Array(class_number)
+    }
     let bg_contrast_array = new Array(class_number)
     let name_difference = 0, name_consistency = -100000, color_discrimination = [100000, 100000]
     for (let i = 0; i < class_number; i++) {
-        bg_contrast_array[i] = d3_ciede2000(d3.lab(palette[i]), d3.lab(d3.rgb(bgcolor))) - d3_ciede2000(d3.lab(palette2[i]), d3.lab(d3.rgb(bgcolor)))
+        bg_contrast_array[i] = d3_ciede2000(d3.lab(palette[i]), d3.lab(d3.rgb(bgcolor))) - d3_ciede2000(d3.lab(d3.rgb(palette2[i])), d3.lab(d3.rgb(d3.rgb(bgcolor))))
         // bg_contrast_array[i] = 100 - d3.lab(palette[i]).L - 100 + d3.lab(palette2[i]).L
         for (let j = i + 1; j < class_number; j++) {
-            let cd_0 = d3_ciede2000(d3.lab(palette[i]), d3.lab(palette[j])), cd_1 = d3_ciede2000(d3.lab(palette2[i]), d3.lab(palette2[j]))
+            let cd_0 = d3_ciede2000(d3.lab(palette[i]), d3.lab(palette[j])), cd_1 = d3_ciede2000(d3.lab(d3.rgb(palette2[i])), d3.lab(d3.rgb(palette2[j])))
             color_dis[i][j] = color_dis[j][i] = (cd_0 + cd_1)
             name_difference += getNameDifference(palette[i], palette[j]);
             name_difference += getNameDifference(palette2[i], palette2[j]);
@@ -225,6 +218,8 @@ function randomDisturbColors(palette, colors_scope) {
     let hcl = rgb2hcl(color);
     color = hcl2rgb(d3.hcl(normScope(hcl.h, colors_scope.hue_scope), normScope(hcl.c, [0, 100]), normScope(hcl.l, colors_scope.lumi_scope)));
     palette[idx] = d3.rgb(norm255(color.r), norm255(color.g), norm255(color.b));
+    let hsl = d3.hsl(palette[idx]), hsl1 = palette[idx + palette.length / 2]
+    palette[idx + palette.length / 2] = d3.hsl(hsl.h, hsl.s, hsl1.l)
     let count = 0,
         sign;
     while (true) {
@@ -245,6 +240,8 @@ function randomDisturbColors(palette, colors_scope) {
                 }
             }
             palette[sign] = hcl2rgb(d3.hcl(normScope(hcl.h, colors_scope.hue_scope), normScope(hcl.c, [0, 100]), normScope(hcl.l, colors_scope.lumi_scope)));
+            hsl = d3.hsl(palette[sign]), hsl1 = palette[sign + palette.length / 2]
+            palette[sign + palette.length / 2] = d3.hsl(hsl.h, hsl.s, hsl1.l)
         }
         let satisfy_color_name = true;
         if (color_names_checked.length > 0) {
@@ -261,6 +258,7 @@ function randomDisturbColors(palette, colors_scope) {
 
         if (satisfy_color_name || count >= 100) break;
     }
+
 }
 
 function isDiscriminative(palette) {
@@ -271,7 +269,7 @@ function isDiscriminative(palette) {
             if (color_dis < 10) {
                 return j;
             }
-            color_dis = d3_ciede2000(d3.lab(palette[i + class_number]), d3.lab(palette[j + class_number]));
+            color_dis = d3_ciede2000(d3.lab(d3.rgb(palette[i + class_number])), d3.lab(d3.rgb(palette[j + class_number])));
             if (color_dis < 10) {
                 return j;
             }
@@ -294,14 +292,15 @@ function disturbColors(palette, colors_scope) {
     } else {
         // disturb the lightness
         let class_number = palette.length / 2, sign = true, count = 0
-        let l0 = d3.hsl(palette[class_number]).l
+        let l0 = palette[class_number].l
+        let l1 = l0 + getRandomIntInclusive(-l0 * 100, (1 - l0) * 100) * 0.01
         while (sign) {
             sign = false;
             // let l = 0.5 + getRandomIntInclusive(-50, 50) * 0.01
-            let l = l0 + getRandomIntInclusive(-l0 * 100, (1 - l0) * 100) * 0.01
             for (let i = 0; i < class_number; i++) {
+                let l = l1 + getRandomIntInclusive(-5, 5) * 0.01
                 let hsl = d3.hsl(palette[i])
-                palette[i + class_number] = d3.rgb(d3.hsl(hsl.h, hsl.s, l))
+                palette[i + class_number] = d3.hsl(hsl.h, hsl.s, l)
                 let nd = getNameDifference(palette[i], palette[i + class_number])
                 if (nd > 0.8) {
                     sign = true;

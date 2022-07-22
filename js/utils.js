@@ -143,7 +143,8 @@ function getLabelToClassMapping(labelSet) {
     var i = 0;
     var label2class = {};
     for (let e of labelSet.values()) {
-        label2class[e] = i++;
+        // label2class[e] = i++;
+        label2class[e] = +e;
     }
     return label2class;
 }

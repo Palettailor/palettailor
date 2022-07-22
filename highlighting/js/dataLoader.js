@@ -23,7 +23,7 @@ function loadScatterplotExample() {
 function loadLinechartExample() {
     source_datasets = [];
     source_datasets_names = [];
-    d3.text("./data/linechart.csv", function (error, text) {
+    d3.text("../data/linechart.csv", function (error, text) {
         if (error) throw error;
         DATATYPE = "LINECHART";
         source_datasets_names.push("linechart");
@@ -44,7 +44,7 @@ function loadLinechartExample() {
 function loadBarchartExample() {
     source_datasets = [];
     source_datasets_names = [];
-    d3.text("./data/barchart.csv", function (error, text) {
+    d3.text("../data/barchart.csv", function (error, text) {
         if (error) throw error;
         DATATYPE = "BARCHART";
         source_datasets_names.push("barchart");

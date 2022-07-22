@@ -22,6 +22,15 @@ function getNameDifference(x1, x2) {
     return 1 - c3.color.cosine(c1, c2);
 }
 
+function getColorName(color) {
+    let c = getColorNameIndex(color),
+        t = c3.color.relatedTerms(c, 1);
+    if (t[0] != undefined) {
+        return c3.terms[t[0].index]
+    }
+    return undefined
+}
+
 /**
  * calculate KNNG distance
  */
