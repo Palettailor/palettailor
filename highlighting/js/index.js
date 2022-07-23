@@ -182,6 +182,7 @@ function appendScatterplot(used_palette) {
     // }
     // console.log(JSON.stringify(palette2));
 
+
     for (let s = 0; s < source_datasets.length; s++) {
         let scatterplot_svg = d3.select("#renderDiv").append("svg").attr("id", "renderSvg").attr("typeId", "scatter")
             .attr("width", SVGWIDTH).attr("height", SVGHEIGHT);

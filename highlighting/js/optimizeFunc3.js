@@ -33,18 +33,29 @@ function doColorization() {
     }
 
     console.log("=======================================================");
+    console.log("final lightness = ", best_color.lightness);
     console.log("final score = ", best_color.score);
     getPaletteScore(best_color.id, true)
     // if already have a svg, then insert it to the history
     addToHistory();
 
-    let used_palette = best_color.id.slice()
-    let used_palette_0 = best_color.id.slice()
-    let used_palette_1 = best_color.id.slice()
+    used_palette = ["#a96a8d","#d8c300","#646d68","#c42f58","#7b6659","#297a29","#2257ff","#814ad8","#287eea","#b9ff49","#d8bbcb","#fff69e","#d7dad9","#f0c1ce","#dfd7d3","#a7e1a7","#a8bdff","#bfa3eb","#bed8f9","#e2ffb2"]
+    // used_palette = ["#63899e", "#ba6b8f", "#e74c5e", "#a659ff", "#f7c56f", "#a59b6d", "#9f7a7d", "#4fd129", "#397cff", "#eb23c6", "#cfdbe1", "#eedce4", "#f9d6da", "#e0c6ff", "#fcefd8", "#f1efe8", "#ede7e7", "#cef3c3", "#dbe7ff", "#fcdef6"]
+    let l = 0.8
+    for (let i = used_palette.length / 2; i < used_palette.length; i++) {
+        let hsl = d3.hsl(used_palette[i])
+        used_palette[i] = d3.hsl(hsl.h, hsl.s, l)
+    }
+
+    // let used_palette = best_color.id.slice()
+    let used_palette_0 = used_palette.slice()
+    let used_palette_1 = used_palette.slice()
     for (let i = 0; i < class_number; i++) {
         used_palette_0[i + class_number] = used_palette_0[i];
         used_palette_1[i] = used_palette_1[i + class_number]
     }
+
+    
 
     if (DATATYPE === "SCATTERPLOT") {
         appendScatterplot(used_palette_0)
@@ -149,6 +160,7 @@ function simulatedAnnealing2FindBestPalette(palette_size, colors_scope = { "hue_
     // updateCurrBestScore(color_palette)
     let o = {
         id: color_palette,
+        lightness: 0.9,
         score: getPaletteScore(color_palette)
     },
         preferredObj = o;
@@ -159,10 +171,12 @@ function simulatedAnnealing2FindBestPalette(palette_size, colors_scope = { "hue_
         for (let i = 0; i < 1; i++) { //disturb at each temperature
             iterate_times++;
             color_palette = o.id.slice();
-            disturbColors(color_palette, colors_scope, Math.exp((-delta_score) * 10 / cur_temper));
+            lightness = o.lightness
+            lightness = disturbColors(color_palette, colors_scope, Math.exp((-delta_score) * 10 / cur_temper), lightness);
             let color_palette_2 = color_palette.slice();
             let o2 = {
                 id: color_palette_2,
+                lightness: lightness,
                 score: getPaletteScore(color_palette_2)
             };
 
@@ -272,7 +286,7 @@ function isDiscriminative(palette) {
                 return j;
             }
         }
-        // if (d3_ciede2000(d3.lab(palette[i]), d3.lab(bgcolor)) < 10) {
+        // if (d3_ciede2000(d3.lab(palette[i + class_number]), d3.lab(bgcolor)) < 10) {
         //     return i;
         // }
     }
@@ -283,7 +297,7 @@ function isDiscriminative(palette) {
  * @param {} palette 
  * @param {*} colors_scope 
  */
-function disturbColors(palette, colors_scope, prob) {
+function disturbColors(palette, colors_scope, prob, lightness) {
 
     let class_number = palette.length / 2
     if (Math.random() < 0.5) {
@@ -304,22 +318,25 @@ function disturbColors(palette, colors_scope, prob) {
         palette[idx_1 + class_number] = tmp;
     }
 
+
     // disturb the lightness
     if (Math.random() < prob) {
         // find a new baseline lightness
         let sign = true, count = 0
-        let l0 = palette[class_number].l
         while (sign) {
             sign = false;
-            let l = l0 + getRandomIntInclusive(-l0 * 100, (1 - l0) * 100) * 0.01
+            lightness = lightness + getRandomIntInclusive(-lightness * 100, (1 - lightness) * 100) * 0.01
             for (let i = 0; i < class_number; i++) {
                 let hsl = d3.hsl(palette[i])
-                palette[i + class_number] = d3.hsl(hsl.h, hsl.s, l)
+                palette[i + class_number] = d3.hsl(hsl.h, hsl.s, lightness)
                 let nd = getNameDifference(palette[i], palette[i + class_number])
                 if (nd > 0.8) {
                     sign = true;
-                    break
                 }
+                // if (d3_ciede2000(d3.lab(palette[i + class_number]), d3.lab(d3.rgb(bgcolor))) < 10) {
+                //     sign = true;
+                //     break
+                // }
             }
             count += 1
             if (count > 100) break;
@@ -327,19 +344,23 @@ function disturbColors(palette, colors_scope, prob) {
     } else {
         // disturb the lightness of a random color in a range [-0.05, 0.05]
         let sign = true, count = 0
+        let idx = getRandomIntInclusive(0, class_number - 1)
         while (sign) {
             sign = false;
-            let idx = getRandomIntInclusive(0, class_number - 1)
-            let l = palette[idx + class_number].l + getRandomIntInclusive(-5, 5) * 0.01
+            let l = lightness + getRandomIntInclusive(-5, 5) * 0.01
             palette[idx + class_number] = d3.hsl(palette[idx + class_number].h, palette[idx + class_number].s, l)
             let nd = getNameDifference(palette[idx], palette[idx + class_number])
             if (nd > 0.8) {
                 sign = true;
             }
+            // if (d3_ciede2000(d3.lab(palette[idx + class_number]), d3.lab(d3.rgb(bgcolor))) < 10) {
+            //     sign = true;
+            // }
             count += 1
             if (count > 100) break;
         }
     }
+    return lightness
 
 }
 
