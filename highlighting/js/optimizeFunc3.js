@@ -39,15 +39,15 @@ function doColorization() {
     // if already have a svg, then insert it to the history
     addToHistory();
 
-    used_palette = ["#a96a8d","#d8c300","#646d68","#c42f58","#7b6659","#297a29","#2257ff","#814ad8","#287eea","#b9ff49","#d8bbcb","#fff69e","#d7dad9","#f0c1ce","#dfd7d3","#a7e1a7","#a8bdff","#bfa3eb","#bed8f9","#e2ffb2"]
-    // used_palette = ["#63899e", "#ba6b8f", "#e74c5e", "#a659ff", "#f7c56f", "#a59b6d", "#9f7a7d", "#4fd129", "#397cff", "#eb23c6", "#cfdbe1", "#eedce4", "#f9d6da", "#e0c6ff", "#fcefd8", "#f1efe8", "#ede7e7", "#cef3c3", "#dbe7ff", "#fcdef6"]
-    let l = 0.8
-    for (let i = used_palette.length / 2; i < used_palette.length; i++) {
-        let hsl = d3.hsl(used_palette[i])
-        used_palette[i] = d3.hsl(hsl.h, hsl.s, l)
-    }
+    // used_palette = ["#a96a8d","#d8c300","#646d68","#c42f58","#7b6659","#297a29","#2257ff","#814ad8","#287eea","#b9ff49","#d8bbcb","#fff69e","#d7dad9","#f0c1ce","#dfd7d3","#a7e1a7","#a8bdff","#bfa3eb","#bed8f9","#e2ffb2"]
+    // // used_palette = ["#63899e", "#ba6b8f", "#e74c5e", "#a659ff", "#f7c56f", "#a59b6d", "#9f7a7d", "#4fd129", "#397cff", "#eb23c6", "#cfdbe1", "#eedce4", "#f9d6da", "#e0c6ff", "#fcefd8", "#f1efe8", "#ede7e7", "#cef3c3", "#dbe7ff", "#fcdef6"]
+    // let l = 0.8
+    // for (let i = used_palette.length / 2; i < used_palette.length; i++) {
+    //     let hsl = d3.hsl(used_palette[i])
+    //     used_palette[i] = d3.hsl(hsl.h, hsl.s, l)
+    // }
 
-    // let used_palette = best_color.id.slice()
+    let used_palette = best_color.id.slice()
     let used_palette_0 = used_palette.slice()
     let used_palette_1 = used_palette.slice()
     for (let i = 0; i < class_number; i++) {
