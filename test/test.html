@@ -8,7 +8,8 @@
 
     <script type="text/javascript" src="d3.v4.min.js"></script>
     <script type="text/javascript" src="d3.color.min.js"></script>
-    <script type="text/javascript" src="palettailor-scatterplot.js"></script>
+    <!-- <script type="text/javascript" src="palettailor-scatterplot.js"></script> -->
+    <script type="text/javascript" src="palettailor-withoutData.js"></script>
 </head>
 
 <body>
@@ -57,7 +58,8 @@
         xScale.domain(d3.extent(data, d => d.x));
         yScale.domain(d3.extent(data, d => d.y));
 
-        let palettailor = new Palettailor(data, [1, 1, 1], svg_width, svg_height)
+        // let palettailor = new Palettailor(data, [1, 1, 1], svg_width, svg_height)
+        let palettailor = new Palettailor(10, [1, 1, 1])
         let palette = palettailor.run;
 
         let scatterplot_svg = d3.select("#renderDiv").append("svg")

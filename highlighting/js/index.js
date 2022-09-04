@@ -237,7 +237,7 @@ function updateSvg(palette, svg, classId) {
     let typeId = svg.attr("typeId")
     if (typeId != "line") {
         for (let i = 0; i < palette.length / 2; i++) {
-            if (classId != i && d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
+            if (classId != -1 && classId != i && d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
                 svg.selectAll("#class_" + i)
                     .attr("fill", function () {
                         return palette[i + palette.length / 2];
@@ -260,7 +260,7 @@ function updateSvg(palette, svg, classId) {
     }
     else {
         for (let i = 0; i < palette.length / 2; i++) {
-            if (classId != i && d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
+            if (classId != -1 && classId != i && d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
                 svg.selectAll("#class_" + i)
                     .attr("stroke", function () {
                         return palette[i + palette.length / 2];
@@ -519,7 +519,9 @@ function changeBgcolor() {
     let bg_icon = d3.select("#bg_icon");
     if (bg_icon.attr("class") === "icon_black_bg") {
         bg_icon.attr("class", "icon_white_bg");
-        bgcolor = "#000";
+        // bgcolor = "#bbb";
+        bgcolor = "#000"
+        // bgcolor = d3.rgb(9, 38, 110)
         renderResult();
     } else {
         bg_icon.attr("class", "icon_black_bg");
@@ -555,12 +557,12 @@ function drawTransferFunction(palette) {
             color_name = c3.terms[t[0].index]
         }
 
-        c = getColorNameIndex(d3.rgb(palette[id + x_labels.length]))
-        t = c3.color.relatedTerms(c, 1);
-        let color_name2 = "undefined"
-        if (t[0] != undefined) {
-            color_name2 = c3.terms[t[0].index]
-        }
+        // c = getColorNameIndex(d3.rgb(palette[id + x_labels.length]))
+        // t = c3.color.relatedTerms(c, 1);
+        // let color_name2 = "undefined"
+        // if (t[0] != undefined) {
+        //     color_name2 = c3.terms[t[0].index]
+        // }
         dataForm += ("<tr><td><span class=\'icon_box-empty\' classId=\'" + labelToClass[x_labels[i]] + "\' id=\'icon_lock-" + labelToClass[x_labels[i]] + "\' style=\'display:inline-block;\' onclick=\'lockThisRect(this);\'></span>" +
             "</td><td>" +
             "<span class=\'tf_rect\' classId=\'" + labelToClass[x_labels[i]] + "\' style=\'background:" + palette[id] + ";\' onclick=\'lockThisRect(this);\'></span>" +
@@ -568,13 +570,14 @@ function drawTransferFunction(palette) {
             x_labels[i] +
             "</td><td>" +
             color_name +
+            // "</td><td>" +
+            // color_name2 +
             "</td><td>" +
-            color_name2 +
-            "</td><td>" +
-            // colorConversionFns['Hex'](palette[id]) +
+            colorConversionFns['Hex'](palette[id]) +
             // colorConversionFns['Lab'](d3.lab(d3.rgb(palette[id]))) +
             // colorConversionFns['HSL'](palette[id + x_labels.length]) +
-            (palette[id + x_labels.length].l).toFixed(2) +
+            // (palette[id + x_labels.length].l).toFixed(2) +
+            // getNameDifference(palette[id], palette[id + x_labels.length]).toFixed(2) +
             "</td></tr>");
     }
     document.getElementById("tfInfoLabel").innerHTML = dataForm;

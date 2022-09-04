@@ -98,7 +98,7 @@ table tr th {
 /*sidebar navigation*/
 
 #sidebar {
-    width: 400px;
+    width: 350px;
     height: 100%;
     position: fixed;
     background: #f6f6f6;
@@ -237,13 +237,13 @@ ul.historyList li:hover {
 }
 
 ul.historyList li div.screenshot {
-    width: 160px;
+    width: 80px;
     height: 80px;
     float: left;
 }
 
 ul.historyList li div.paletteBar {
-    width: calc(100% - 180px);
+    width: calc(100% - 100px);
     height: 80px;
     display: inline-block;
 }
@@ -410,7 +410,7 @@ ul.sidebar-menu li.active a i {
 /*main content*/
 
 #main-content {
-    margin-left: 400px;
+    margin-left: 350px;
 }
 
 .header, .footer {

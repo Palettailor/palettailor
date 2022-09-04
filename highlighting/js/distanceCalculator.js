@@ -31,6 +31,17 @@ function getColorName(color) {
     return undefined
 }
 
+function getColorName2(color) {
+    let c = getColorNameIndex(color),
+        t = c3.color.relatedTerms(c, 10);
+    let names = []
+    for (let i = 0; i < t.length; i++) {
+        if (t[i] != undefined) {
+            names.push(c3.terms[t[i].index])
+        }
+    }
+    return names
+}
 /**
  * calculate KNNG distance
  */
@@ -62,8 +73,9 @@ function calculateAlphaShapeDistance(datasets, extent) {
     }
     let non_separability_weights_tmp = new Array(cluster_num).fill(0);
     non_separability_weights = new Array(cluster_num).fill(0);
+    let alpha_extent = [10000000, -10000000], beta_extent = [10000000, -10000000]
     for (let m = 0; m < datasets.length; m++) {
-        let voronoi = d3.voronoi().x(function(d) { return d.x; }).y(function(d) { return d.y; })
+        let voronoi = d3.voronoi().x(function (d) { return d.x; }).y(function (d) { return d.y; })
             .extent(extent);
         let diagram = voronoi(datasets[m]);
         let cells = diagram.cells;
@@ -74,7 +86,7 @@ function calculateAlphaShapeDistance(datasets, extent) {
             let label = labelToClass[cell.site.data.label];
             // console.log(cell.halfedges);
             let stat = [0, 0];
-            cell.halfedges.forEach(function(e) {
+            cell.halfedges.forEach(function (e) {
                 let edge = diagram.edges[e];
                 let ea = edge.left;
                 if (ea === cell.site || !ea) {
@@ -109,6 +121,8 @@ function calculateAlphaShapeDistance(datasets, extent) {
             for (var j in distanceDict[i]) {
                 i = +i, j = +j;
                 alphaShape_distance[i][j] += d3.sum(distanceDict[i][j]) / Math.pow(cluster_nums[m][i], 1);
+                alpha_extent[0] = alpha_extent[0] > alphaShape_distance[i][j] ? alphaShape_distance[i][j] : alpha_extent[0]
+                alpha_extent[1] = alpha_extent[1] < alphaShape_distance[i][j] ? alphaShape_distance[i][j] : alpha_extent[1]
             }
         }
         for (let i = 0; i < cluster_num; i++) {
@@ -117,8 +131,22 @@ function calculateAlphaShapeDistance(datasets, extent) {
     }
 
     for (let i = 0; i < cluster_num; i++) {
-        non_separability_weights[i] = Math.exp(non_separability_weights[i]);
+        // non_separability_weights[i] = Math.exp(non_separability_weights[i]);
+        beta_extent[0] = beta_extent[0] > non_separability_weights[i] ? non_separability_weights[i] : beta_extent[0]
+        beta_extent[1] = beta_extent[1] < non_separability_weights[i] ? non_separability_weights[i] : beta_extent[1]
     }
+
+    // normalize the distance
+    for (let i = 0; i < cluster_num; i++) {
+        non_separability_weights[i] = (non_separability_weights[i] - beta_extent[0]) / (beta_extent[1] - beta_extent[0] + 0.00001)
+        non_separability_weights[i] = Math.exp(non_separability_weights[i])
+        for (let j = 0; j < cluster_num; j++) {
+            alphaShape_distance[i][j] = (alphaShape_distance[i][j] - alpha_extent[0]) / (alpha_extent[1] - alpha_extent[0] + 0.00001)
+            alphaShape_distance[i][j] = Math.exp(alphaShape_distance[i][j])
+        }
+    }
+
+
     console.log("alphaShape_distance:", alphaShape_distance);
     console.log("non_separability_weights:", non_separability_weights);
 

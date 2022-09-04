@@ -143,8 +143,8 @@ function getLabelToClassMapping(labelSet) {
     var i = 0;
     var label2class = {};
     for (let e of labelSet.values()) {
-        // label2class[e] = i++;
-        label2class[e] = +e;
+        label2class[e] = i++;
+        // label2class[e] = +e;
     }
     return label2class;
 }
@@ -173,21 +173,43 @@ var colorConversionFns = {
 };
 
 function downloadSvg() {
-    let svgEl = d3.select("#renderDiv").select("svg")._groups[0][0];
-    // let svgEl = document.getElementById(svgId);
-    svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    var svgData = svgEl.outerHTML;
-    var preface = '<?xml version="1.0" standalone="no"?>\r\n';
-    var svgBlob = new Blob([preface, svgData], {
-        type: "image/svg+xml;charset=utf-8"
+    // let svgEl = d3.select("#renderDiv").select("svg")._groups[0][0];
+    // // let svgEl = document.getElementById(svgId);
+    // svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    // var svgData = svgEl.outerHTML;
+    // var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+    // var svgBlob = new Blob([preface, svgData], {
+    //     type: "image/svg+xml;charset=utf-8"
+    // });
+    // // console.log(svgBlob);
+    // var svgUrl = URL.createObjectURL(svgBlob);
+    // var downloadLink = document.createElement("a");
+    // downloadLink.href = svgUrl;
+    // downloadLink.download = "result.svg";
+    // downloadLink.click();
+    // URL.revokeObjectURL(svgUrl);
+    let scatterplot_svgs = d3.select("#renderDiv").selectAll("svg");
+    scatterplot_svgs.each(function () {
+        save1Svg(d3.select(this));
     });
-    // console.log(svgBlob);
-    var svgUrl = URL.createObjectURL(svgBlob);
-    var downloadLink = document.createElement("a");
-    downloadLink.href = svgUrl;
-    downloadLink.download = "result.svg";
-    downloadLink.click();
-    URL.revokeObjectURL(svgUrl);
+
+    function save1Svg(scatterplot_svg) {
+        let svgEl = scatterplot_svg._groups[0][0];
+        // let svgEl = document.getElementById(svgId);
+        svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        var svgData = svgEl.outerHTML;
+        var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+        var svgBlob = new Blob([preface, svgData], {
+            type: "image/svg+xml;charset=utf-8"
+        });
+        // console.log(svgBlob);
+        var svgUrl = URL.createObjectURL(svgBlob);
+        var downloadLink = document.createElement("a");
+        downloadLink.href = svgUrl;
+        downloadLink.download = "result.svg";
+        downloadLink.click();
+        URL.revokeObjectURL(svgUrl);
+    }
 }
 
 function savePNG() {
@@ -266,4 +288,78 @@ function delCookie(cookName) {
     exp.setTime(exp.getTime());
     var cval = 0;
     document.cookie = cookName + "=" + cval + ";expires=" + exp.toGMTString();
+}
+
+
+function showTrend(data, x = 0, y = 1) {
+    let linechart_svg = d3.select("#renderDiv").append("svg").attr("id", "renderSvg").attr("typeId", "line")
+        .attr("width", SVGWIDTH).attr("height", SVGHEIGHT);
+
+    let linechart = linechart_svg.style("background-color", bgcolor)
+        .append("g")
+        .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")");
+
+    let m_xScale = d3.scaleLinear().range([0, svg_width]), // value -> display
+        m_yScale = d3.scaleLinear().range([svg_height, 0]); // value -> display
+    // Scale the range of the data
+    m_xScale.domain(d3.extent(data, function (d) {
+        return d[x];
+    }));
+    m_yScale.domain(d3.extent(data, function (d) {
+        return d[y];
+    }));
+    // define the line
+    let valueline = d3.line()
+        .x(function (d) {
+            return m_xScale(d[x]);
+        })
+        .y(function (d) {
+            return m_yScale(d[y]);
+        })//.curve(d3.curveCatmullRom);
+
+    let sampled_data = data
+    // if (y === 1) {
+    //     valueline.curve(d3.curveCatmullRom);
+    // }
+    let samples_num = 50
+    let samples_interval = 1; Math.floor(data.length / samples_num)
+    sampled_data = []
+    for (let i = 0; i < data.length; i++) {
+        if (i % samples_interval === 0)
+            sampled_data.push(data[i])
+    }
+    sampled_data.push(data[data.length - 1])
+
+    // Add the valueline path.
+    linechart.selectAll('path')
+        .data([sampled_data]).enter().append("path")
+        .attr("d", function (d) {
+            return valueline(d);
+        })
+        .attr("class", "linechart")
+        .attr("fill", "none")
+        .attr("stroke", "#444")
+        .style("stroke-width", 1)
+
+    // Add the X Axis
+    linechart.append("g")
+        .attr("transform", "translate(0," + svg_height + ")")
+        .call(d3.axisBottom(m_xScale)); //.tickFormat("")
+
+    // Add the Y Axis
+    linechart.append("g")
+        .call(d3.axisLeft(m_yScale)); //.tickFormat("")
+
+    linechart_svg.append("text").attr("x", 0).attr("y", 20).text("prob");
+}
+
+function checkSameNames(palette, class_number) {
+    let color_names = new Set();
+    for (let i = 0; i < class_number; i++) {
+        color_names.add(getColorName(palette[i]))
+    }
+    if (color_names.size < class_number) {
+        return true
+    }
+    return false;
 }

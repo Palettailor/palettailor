@@ -200,7 +200,7 @@ function processScatterData(datasets) {
         [0, 0],
         [svg_width, svg_height]
     ])
-   
+
 }
 
 function processBarData(datasets) {
@@ -227,6 +227,7 @@ function processBarData(datasets) {
         alphaShape_distance[i] = new Array(cluster_num).fill(0);
     }
     non_separability_weights = new Array(cluster_num).fill(0);
+    let alpha_extent = [0, -10000000], beta_extent = [10000000, -10000000]
     for (let m = 0; m < datasets.length; m++) {
         //bar chart
         let baryCenter = new Array(cluster_num);
@@ -236,10 +237,26 @@ function processBarData(datasets) {
         // only nearest two bars have a distance
         for (let i = 0; i < cluster_num - 1; i++) {
             let dist = Math.sqrt((baryCenter[i][0] - baryCenter[i + 1][0]) * (baryCenter[i][0] - baryCenter[i + 1][0]) + (baryCenter[i][1] - baryCenter[i + 1][1]) * (baryCenter[i][1] - baryCenter[i + 1][1]));
-            alphaShape_distance[i][i + 1] += inverseFunc(dist + 1);
-            non_separability_weights[i] += 1 / baryCenter[i][1];
+            alphaShape_distance[i][i + 1] = alphaShape_distance[i + 1][i] = inverseFunc(dist + 1);
+            non_separability_weights[i] += inverseFunc(baryCenter[i][1] + 1);
+
+            alpha_extent[1] = alpha_extent[1] < alphaShape_distance[i][i + 1] ? alphaShape_distance[i][i + 1] : alpha_extent[1]
+            beta_extent[0] = beta_extent[0] > non_separability_weights[i] ? non_separability_weights[i] : beta_extent[0]
+            beta_extent[1] = beta_extent[1] < non_separability_weights[i] ? non_separability_weights[i] : beta_extent[1]
         }
         non_separability_weights[cluster_num - 1] += 1 / baryCenter[cluster_num - 1][1];
+        beta_extent[0] = beta_extent[0] > non_separability_weights[cluster_num - 1] ? non_separability_weights[cluster_num - 1] : beta_extent[0]
+        beta_extent[1] = beta_extent[1] < non_separability_weights[cluster_num - 1] ? non_separability_weights[cluster_num - 1] : beta_extent[1]
+    }
+    
+    // normalize the distance
+    for (let i = 0; i < cluster_num; i++) {
+        non_separability_weights[i] = (non_separability_weights[i] - beta_extent[0]) / (beta_extent[1] - beta_extent[0] + 0.00001)
+        non_separability_weights[i] = Math.exp(non_separability_weights[i])
+        for (let j = 0; j < cluster_num; j++) {
+            alphaShape_distance[i][j] = (alphaShape_distance[i][j] - alpha_extent[0]) / (alpha_extent[1] - alpha_extent[0] + 0.00001)
+            alphaShape_distance[i][j] = Math.exp(alphaShape_distance[i][j])
+        }
     }
     console.log("alphaShape_distance:", alphaShape_distance);
     console.log("non_separability_weights:", non_separability_weights);
@@ -367,5 +384,5 @@ function processLineData(datasets) {
         [0, 0],
         [svg_width, svg_height]
     ])
-    
+
 }

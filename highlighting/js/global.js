@@ -6,7 +6,7 @@ let svg_margin = {
     left: 40
 },
     radius = 6,
-    SVGWIDTH = 560,//1060
+    SVGWIDTH = 560,//1060,//760,//
     SVGHEIGHT = 600;
 
 let svg_width = SVGWIDTH - svg_margin.left - svg_margin.right,
@@ -49,3 +49,5 @@ let color_name_map = {};
 // color saliency range
 let minE = -4.5,
     maxE = 0;
+
+    
