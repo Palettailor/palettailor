@@ -594,7 +594,6 @@ function appendLinechart(used_palette) {
  * @param {*} used_palette 
  */
 function transferSvgToCanvas(svg, used_palette) {
-    alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
     let used_colors = [], class_number = used_palette.length / 2
     for (let i = 0; i < class_number; i++) {
         used_colors.push([d3.rgb(used_palette[i]), d3.rgb(used_palette[i + class_number])])

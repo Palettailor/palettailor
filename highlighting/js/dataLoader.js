@@ -191,6 +191,7 @@ function loadLinechartExample() {
         d3.select(".operationDiv").style('pointer-events', "auto");
         document.querySelector('#loading').classList.add('hide');
         renderResult();
+        alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
     });
 }
 
@@ -212,6 +213,7 @@ function loadBarchartExample() {
         d3.select(".operationDiv").style('pointer-events', "auto");
         document.querySelector('#loading').classList.add('hide');
         renderResult();
+        alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
     });
 }
 
