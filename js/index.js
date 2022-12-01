@@ -372,13 +372,13 @@ function appendPaletteResult(palette) {
 function outputPalette(palette) {
   //output the palette
   var format = resultsColorSpace,
-    paletteStr = "[",
-    data_palette_attr = "";
+      paletteStr = "[",
+      data_palette_attr = "";
   for (let i = 0; i < palette.length - 1; i++) {
-    paletteStr += "" + colorConversionFns[format](palette[i]) + ",";
-    data_palette_attr += palette[i] + ";";
+      paletteStr += "\"" + colorConversionFns[format](palette[i]) + "\",";
+      data_palette_attr += palette[i] + ";";
   }
-  paletteStr += "" + colorConversionFns[format](palette[palette.length - 1]) + "]";
+  paletteStr += "\"" + colorConversionFns[format](palette[palette.length - 1]) + "\"]";
   data_palette_attr += palette[palette.length - 1];
   d3.select("#paletteText").property('value', paletteStr).attr('data-palette', data_palette_attr);
 }

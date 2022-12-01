@@ -2,22 +2,175 @@
 function loadScatterplotExample() {
     source_datasets = [];
     source_datasets_names = [];
-    d3.text("../data/scatterplot.csv", function (error, text) {
-        if (error) throw error;
-        DATATYPE = "SCATTERPLOT";
-        source_datasets_names.push("scatterplot");
-        let labelSet = new Set();
-        if (!loadData(text, labelSet, "scatterplot")) {
-            console.log("Loading file problem.");
-            return
-        }
+    // d3.text("../data/scatterplot.csv", function (error, text) {
+    if (true)
+        d3.text("./data/8classes.csv", function (error, text) {
+            if (error) throw error;
+            DATATYPE = "SCATTERPLOT";
+            source_datasets_names.push("scatterplot");
+            let labelSet = new Set();
+            if (!loadData(text, labelSet, "scatterplot")) {
+                console.log("Loading file problem.");
+                return
+            }
 
-        labelToClass = getLabelToClassMapping(labelSet);
-        processScatterData(source_datasets);
-        d3.select(".operationDiv").style('pointer-events', "auto");
-        document.querySelector('#loading').classList.add('hide');
-        renderResult();
-    });
+            labelToClass = getLabelToClassMapping(labelSet);
+            processScatterData(source_datasets);
+            d3.select(".operationDiv").style('pointer-events', "auto");
+            document.querySelector('#loading').classList.add('hide');
+            renderResult();
+        });
+
+    if (false) {
+        // cars example: https://bl.ocks.org/jasondavies/1341281
+        d3.csv("./data/cars.csv", function (error, cars) {
+            if (error) throw error;
+            console.log(cars);
+            let source_data = []
+            let labelSet = new Set();
+            let getLabel = function (d) {
+                return d.cylinders
+            }
+
+            for (let d of cars) {
+                source_data.push({
+                    x: +d["weight (lb)"],
+                    y: +d['displacement (cc)'],
+                    label: getLabel(d)
+                })
+                labelSet.add(getLabel(d))
+            }
+            console.log(source_data);
+            source_datasets.push(source_data);
+            source_datasets_names.push("cars.csv");
+            labelToClass = getLabelToClassMapping(labelSet);
+            console.log(labelToClass);
+            processScatterData(source_datasets);
+            d3.select(".operationDiv").style('pointer-events', "auto");
+            document.querySelector('#loading').classList.add('hide');
+            renderResult();
+        });
+    }
+
+    if (false) {
+        // Force 2020 Machine Learning competition: https://towardsdatascience.com/seaborn-pairplot-enhance-your-data-understanding-with-a-single-plot-bf2f44524b22
+        let file_name = "Xeek_Well_15-9-15.csv"
+        d3.csv("./data/" + file_name, function (error, Xeek_Well_data) {
+            if (error) throw error;
+            console.log(Xeek_Well_data);
+            let source_data = []
+            let labelSet = new Set();
+            let getLabel = function (d) {
+                return d["LITH"]
+            }
+
+            // for (let d of Xeek_Well_data) {
+            //     if (Math.random()<0.2 && d['RHOB'] != '' && d['GR'] != '' && +d['GR'] <= 200 && d['NPHI'] != '' && d['DTC'] != '') {
+            //         source_data.push({
+            //             x: +d["RHOB"],
+            //             y: +d['DTC'],
+            //             label: getLabel(d)
+            //         })
+            //         labelSet.add(getLabel(d))
+            //     }
+            // }
+            let tmp = [], output_csv = []
+            for (let d of Xeek_Well_data) {
+                if (Math.random() < 0.1 && d['RHOB'] != '' && d['GR'] != '' && +d['GR'] <= 120 && d['NPHI'] != '' && d['DTC'] != '') {
+                    if (!tmp[getLabel(d)]) {
+                        tmp[getLabel(d)] = []
+                        output_csv[getLabel(d)] = []
+                    }
+                    tmp[getLabel(d)].push({
+                        x: +d["RHOB"],
+                        y: +d['NPHI'],
+                        label: getLabel(d)
+                    })
+                    output_csv[getLabel(d)].push(d)
+                    labelSet.add(getLabel(d))
+                }
+            }
+            let arr = []
+            for (let key in tmp) {
+                arr.push([tmp[key].length, key])
+            }
+            arr.sort(function (a, b) {
+                return b[0] - a[0]
+            })
+            output_data_global = []
+            for (let a of arr) {
+                source_data = source_data.concat(tmp[a[1]])
+                output_data_global = output_data_global.concat(output_csv[a[1]])
+            }
+            // save the data
+            let str = "";
+            for (let key in output_data_global[0]) {
+                str += key
+                str += ",";
+            }
+            str += "\n";
+            for (let i = 0; i < output_data_global.length; i++) {
+                for (let key in output_data_global[i]) {
+                    str += output_data_global[i][key]
+                    str += ",";
+                }
+                str += "\n";
+            }
+            var aTag = document.createElement('a');
+            var blob = new Blob(['\ufeff' + str], { type: "text/csv" });
+            aTag.download = "Xeek_Well_data.csv";
+            aTag.href = URL.createObjectURL(blob);
+            aTag.click();
+            URL.revokeObjectURL(blob);
+
+            // shuffle(source_data)
+            console.log(source_data);
+            source_datasets.push(source_data);
+            source_datasets_names.push(file_name);
+            labelToClass = getLabelToClassMapping(labelSet);
+            console.log(labelToClass);
+            processScatterData(source_datasets);
+            d3.select(".operationDiv").style('pointer-events', "auto");
+            document.querySelector('#loading').classList.add('hide');
+            renderResult();
+        });
+    }
+
+    if (false) {
+        // Force 2020 Machine Learning competition: https://towardsdatascience.com/seaborn-pairplot-enhance-your-data-understanding-with-a-single-plot-bf2f44524b22
+        let file_name = "Xeek_Well_data (1).csv"
+        d3.csv("./data/" + file_name, function (error, Xeek_Well_data) {
+            if (error) throw error;
+            console.log(Xeek_Well_data);
+            let source_data = []
+            let labelSet = new Set();
+            let getLabel = function (d) {
+                return d["LITH"]
+            }
+            for (let d of Xeek_Well_data) {
+                if (d['RHOB'] != '' && d['GR'] != '' && +d['GR'] <= 120 && d['NPHI'] != '' && d['DTC'] != '') {
+                    source_data.push({
+                        x: +d["RHOB"],
+                        y: +d['GR'],
+                        label: getLabel(d)
+                    })
+                    labelSet.add(getLabel(d))
+                }
+            }
+
+            // shuffle(source_data)
+            console.log(source_data);
+            source_datasets.push(source_data);
+            source_datasets_names.push(file_name);
+            labelToClass = getLabelToClassMapping(labelSet);
+            console.log(labelToClass);
+            processScatterData(source_datasets);
+            d3.select(".operationDiv").style('pointer-events', "auto");
+            document.querySelector('#loading').classList.add('hide');
+            renderResult();
+        });
+    }
+
 }
 
 function loadLinechartExample() {
@@ -118,7 +271,8 @@ $('#fileLoad').on('change', function (e) {
 });
 
 function loadData(text, labelSet, fileName) {
-    d3.select("#warn_div").style("display", "none");
+    // d3.select("#warn_div").style("display", "none");
+    d3.select("#warn_div").text("Simulated Annealing can not always get the best result(due to limited time and randomness), if the current result is not satisfied, please run it again.")
     document.querySelector('#loading').classList.remove('hide');
     //parse pure text to data, and cast string to number
     let source_data = d3.csvParseRows(text, function (d) {
@@ -201,6 +355,7 @@ function processScatterData(datasets) {
         [svg_width, svg_height]
     ])
 
+    // showVoronoi(datasets[0], [[0, 0], [svg_width, svg_height]]);
 }
 
 function processBarData(datasets) {
@@ -248,7 +403,7 @@ function processBarData(datasets) {
         beta_extent[0] = beta_extent[0] > non_separability_weights[cluster_num - 1] ? non_separability_weights[cluster_num - 1] : beta_extent[0]
         beta_extent[1] = beta_extent[1] < non_separability_weights[cluster_num - 1] ? non_separability_weights[cluster_num - 1] : beta_extent[1]
     }
-    
+
     // normalize the distance
     for (let i = 0; i < cluster_num; i++) {
         non_separability_weights[i] = (non_separability_weights[i] - beta_extent[0]) / (beta_extent[1] - beta_extent[0] + 0.00001)

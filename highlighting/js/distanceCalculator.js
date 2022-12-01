@@ -138,11 +138,11 @@ function calculateAlphaShapeDistance(datasets, extent) {
 
     // normalize the distance
     for (let i = 0; i < cluster_num; i++) {
-        non_separability_weights[i] = (non_separability_weights[i] - beta_extent[0]) / (beta_extent[1] - beta_extent[0] + 0.00001)
-        non_separability_weights[i] = Math.exp(non_separability_weights[i])
+        non_separability_weights[i] = 0.5 * (non_separability_weights[i] - beta_extent[0]) / (beta_extent[1] - beta_extent[0] + 0.00001) + 1
+        // non_separability_weights[i] = Math.exp(non_separability_weights[i])
         for (let j = 0; j < cluster_num; j++) {
-            alphaShape_distance[i][j] = (alphaShape_distance[i][j] - alpha_extent[0]) / (alpha_extent[1] - alpha_extent[0] + 0.00001)
-            alphaShape_distance[i][j] = Math.exp(alphaShape_distance[i][j])
+            alphaShape_distance[i][j] = 0.5 * (alphaShape_distance[i][j] - alpha_extent[0]) / (alpha_extent[1] - alpha_extent[0] + 0.00001) + 1
+            // alphaShape_distance[i][j] = Math.exp(alphaShape_distance[i][j])
         }
     }
 

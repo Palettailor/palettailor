@@ -72,7 +72,46 @@ for (var c = 0; c < c3.color.length; ++c) {
     color_name_map[[x.L, x.a, x.b].join(",")] = c;
 }
 
+// let ccccc = d3.hcl(330, 55, 77)
+// d3.select(".paletteDiv").append("span")
+//     .style("width", "30px").style("height", "30px").style("display", "inline-block")
+//     .style("margin-left", "10px").style("background", hcl2rgb(ccccc))
+// d3.select(".paletteDiv").append("span")
+//     .style("width", "30px").style("height", "30px").style("display", "inline-block")
+//     .style("margin-left", "10px").style("background", ccccc)
+// console.log(ccccc, hcl2rgb(ccccc), getColorNameIndex(ccccc), rgb2hcl(hcl2rgb(ccccc)), getColorNameIndex(rgb2hcl(hcl2rgb(ccccc))));
+
+// ccccc = d3.hcl(210, 15, 17)
+// d3.select(".paletteDiv").append("span")
+//     .style("width", "30px").style("height", "30px").style("display", "inline-block")
+//     .style("margin-left", "10px").style("background", hcl2rgb(ccccc))
+// d3.select(".paletteDiv").append("span")
+//     .style("width", "30px").style("height", "30px").style("display", "inline-block")
+//     .style("margin-left", "10px").style("background", ccccc)
+// console.log(ccccc, hcl2rgb(ccccc), getColorNameIndex(ccccc), rgb2hcl(hcl2rgb(ccccc)), getColorNameIndex(rgb2hcl(hcl2rgb(ccccc))));
+
+// let hcl_valid_range = []
+// for (let r = 0; r < 256; r++) {
+//     for (let g = 0; g < 256; g++) {
+//         for (let b = 0; b < 256; b++) {
+//             ccccc = rgb2hcl(d3.rgb(r, g, b))
+//             if (getColorNameIndex(ccccc) === undefined) {
+//                 // hcl_valid_range.push([ccccc.h, ccccc.c, ccccc.l])
+//                 hcl_valid_range.push(ccccc)
+//             }
+//         }
+//     }
+// }
+// hcl_valid_range.sort((a, b) => a.c - b.c)
+// console.log(hcl_valid_range);
+// for (let i = 0; i < hcl_valid_range.length; i++) {
+//     d3.select(".paletteDiv").append("span")
+//         .style("width", "30px").style("height", "30px").style("display", "inline-block")
+//         .style("margin-left", "10px").style("background", hcl_valid_range[i])
+// }
+
 function addToHistory() {
+    d3.select("#renderDiv").selectAll("div").remove()
     let svgs = d3.select("#renderDiv").selectAll("svg");
     if (svgs._groups[0].length > 0) {
         let li = d3.select(".historyList").append("li")
@@ -161,6 +200,25 @@ function renderResult() {
         if (DATATYPE === "LINECHART") {
             appendLinechart(palette);
         }
+        // appendScatterplotMatrixCars = appendScatterplotMatrix
+        // appendScatterplotMatrixCars(palette)
+        // let class_number = Math.floor(palette.length / 2)
+        // let used_palette_0 = Tableau_10_palette.slice(0, class_number)
+        // // console.log("default Tableau:", used_palette_0);
+        // for (let i = 0; i < class_number; i++) {
+        //     used_palette_0[i + class_number] = "#ccc"
+        // }
+        // appendScatterplotMatrixCars(used_palette_0)
+        // // used_palette_0 = generateOptimizedAssignment(source_datasets[0], Tableau_10_palette.slice(0, class_number), class_number)
+        // used_palette_0 = ['#edc948', '#4e79a7', '#f28e2b', '#e15759', '#59a14f', '#76b7b2', '#b07aa1', '#f2ebd4', '#d5dde5', '#f3e1ce', '#f0d6d7', '#d7e4d5', '#dce8e7', '#e7dde4']
+        // // Tableau 10 optimized + highlighter
+        // for (let i = 0; i < class_number; i++) {
+        //     used_palette_0[i + class_number] = tableau_10[used_palette_0[i]]
+        // }
+        // appendScatterplotMatrixCars(used_palette_0)
+        // console.log("optimized:", used_palette_0);
+
+        // appendScatterplotMatrix(palette)
 
         // draw the palette
         appendPaletteResult(palette);
@@ -188,8 +246,82 @@ function appendScatterplot(used_palette) {
             .attr("width", SVGWIDTH).attr("height", SVGHEIGHT);
         let scatterplot = scatterplot_svg.style("background-color", bgcolor).append("g")
             .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")");
+
+        var brush = d3.brush()
+            .on("start", brushstart)
+            .on("brush", brushmove)
+            .on("end", brushend)
+            .extent([[0, 0], [svg_width, svg_height]]);
+        var brushCell;
+        // Clear the previously-active brush, if any.
+        function brushstart(p) {
+            // console.log("brush start");
+            if (brushCell !== this) {
+                d3.select(brushCell).call(brush.move, null);
+                brushCell = this;
+            }
+        }
+
+        // Highlight the selected circles.
+        function brushmove(p) {
+            // console.log("brush move");
+            var e = d3.brushSelection(this);
+
+            d3.select("#renderDiv").selectAll("circle").attr("fill", function (d) {
+                return !e
+                    ? d3.select(this).attr("item-color")
+                    : ((
+                        e[0][0] > xMap(d) || xMap(d) > e[1][0]
+                        || e[0][1] > yMap(d) || yMap(d) > e[1][1]
+                    ) ? d3.select(this).attr("faint-color") : d3.select(this).attr("item-color"));
+            });
+
+            // opacity
+            // d3.select("#renderDiv").selectAll("circle").style("opacity", function (d) {
+            //     return !e
+            //         ? 1
+            //         : ((
+            //             e[0][0] > xMap(d) || xMap(d) > e[1][0]
+            //             || e[0][1] > yMap(d) || yMap(d) > e[1][1]
+            //         ) ? 0.2 : 1);
+
+            // });
+        }
+
+        // If the brush is empty, select all circles.
+        function brushend() {
+            // console.log("brush end");
+            var e = d3.brushSelection(this);
+            if (e === null) d3.select("#renderDiv").selectAll("circle").attr("fill", function (d) {
+                return d3.select(this).attr("item-color")
+            });
+            // opacity
+            // if (e === null) d3.select("#renderDiv").selectAll("circle").style("opacity", 1);
+        }
+
+        shift_click_flag = false
+        d3.select("#renderDiv").on("click", function () {
+            if (d3.event.shiftKey) {
+                // console.log("Mouse+Shift pressed");
+                if (!shift_click_flag) {
+                    scatterplot.select("#point-group").raise()
+                    shift_click_flag = true
+                    scatterplot.selectAll("circle").attr("fill", function (d) {
+                        // return used_palette[labelToClass[cValue(d)] + used_palette.length / 2];
+                        return d3.select(this).attr("faint-color")
+                    })
+                }
+            } else {
+                shift_click_flag = false
+                scatterplot.select("#point-group").lower()
+                scatterplot.selectAll("circle").attr("fill", function (d) {
+                    return d3.select(this).attr("item-color")
+                    return used_palette[labelToClass[cValue(d)]];
+                })
+            }
+        });
         // draw dots
-        let dots = scatterplot.append("g").selectAll(".dot")
+        let dots = scatterplot.append("g").attr("id", "point-group").selectAll(".dot")
             .data(source_datasets[s])
             .enter().append("circle")
             .attr("class", "dot")
@@ -205,21 +337,32 @@ function appendScatterplot(used_palette) {
             .attr("item-color", function (d) {
                 return used_palette[labelToClass[cValue(d)]];
             })
-            .on("mouseenter", function (d) {
-                updateSvg(used_palette, scatterplot_svg, labelToClass[cValue(d)])
-            }).on("mouseleave", function () {
-                updateSvg(used_palette, scatterplot_svg, -1)
+            .attr("faint-color", function (d) {
+                return used_palette[labelToClass[cValue(d)] + used_palette.length / 2];
             })
-            .on("click", function (d) {
-                // set status
-                d3.select("#tfInfoLabel").select("#icon_lock-" + labelToClass[cValue(d)]).attr("class", "icon_box-checked")
-                updateSvg(used_palette, scatterplot_svg, labelToClass[cValue(d)])
+            .on("click", function () {
+                // console.log("click point");
+                d3.select(this).attr("fill", function (d) {
+                    return used_palette[labelToClass[cValue(d)]];
+                }).raise();
             })
-            .on("dblclick", function (d) {
-                // double click to cancel highlighting
-                d3.select("#tfInfoLabel").select("#icon_lock-" + labelToClass[cValue(d)]).attr("class", "icon_box-empty")
-                updateSvg(used_palette, scatterplot_svg, -1)
-            })
+        // .on("mouseenter", function (d) {
+        //     updateSvg(used_palette, scatterplot_svg, labelToClass[cValue(d)])
+        // }).on("mouseleave", function () {
+        //     updateSvg(used_palette, scatterplot_svg, -1)
+        // })
+        // .on("click", function (d) {
+        //     // set status
+        //     d3.select("#tfInfoLabel").select("#icon_lock-" + labelToClass[cValue(d)]).attr("class", "icon_box-checked")
+        //     updateSvg(used_palette, scatterplot_svg, labelToClass[cValue(d)])
+        // })
+        // .on("dblclick", function (d) {
+        //     // double click to cancel highlighting
+        //     d3.select("#tfInfoLabel").select("#icon_lock-" + labelToClass[cValue(d)]).attr("class", "icon_box-empty")
+        //     updateSvg(used_palette, scatterplot_svg, -1)
+        // })
+
+        scatterplot.call(brush);
         // add the x Axis
         scatterplot.append("g")
             .attr("transform", "translate(0," + svg_height + ")")
@@ -230,6 +373,8 @@ function appendScatterplot(used_palette) {
             .call(d3.axisLeft(yScale)); //.tickFormat("")
 
         scatterplot_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[s]);
+
+        scatterplot_svg.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
     }
 }
 
@@ -330,6 +475,9 @@ function appendBarchart(used_palette) {
             .attr("item-color", function (d) {
                 return used_palette[labelToClass[cValue(d)]];
             })
+            .attr("faint-color", function (d) {
+                return used_palette[labelToClass[cValue(d)] + used_palette.length / 2];
+            })
             .on("mouseenter", function (d) {
                 updateSvg(used_palette, barchart_svg, labelToClass[cValue(d)])
             }).on("mouseleave", function () {
@@ -347,6 +495,7 @@ function appendBarchart(used_palette) {
             })
         // .on("click", appendClickEvent);
         barchart_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[s]);
+        transferSvgToCanvas(barchart_svg, used_palette)
     }
     // return used_palette;
 }
@@ -403,6 +552,9 @@ function appendLinechart(used_palette) {
             .attr("item-color", function (d) {
                 return used_palette[labelToClass[cValue(d)]];
             })
+            .attr("faint-color", function (d) {
+                return used_palette[labelToClass[cValue(d)] + used_palette.length / 2];
+            })
             .on("mouseenter", function (d) {
                 updateSvg(used_palette, linechart_svg, labelToClass[cValue(d)])
             }).on("mouseleave", function () {
@@ -430,8 +582,134 @@ function appendLinechart(used_palette) {
             .call(d3.axisLeft(yScale)); //.tickFormat("")
 
         linechart_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[s]);
+
+        transferSvgToCanvas(linechart_svg, used_palette)
     }
     // return used_palette;
+}
+
+/**
+ * https://bl.ocks.org/mbostock/0d20834e3d5a46138752f86b9b79727e
+ * @param {*} svg 
+ * @param {*} used_palette 
+ */
+function transferSvgToCanvas(svg, used_palette) {
+    alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
+    let used_colors = [], class_number = used_palette.length / 2
+    for (let i = 0; i < class_number; i++) {
+        used_colors.push([d3.rgb(used_palette[i]), d3.rgb(used_palette[i + class_number])])
+    }
+    console.log(used_colors);
+    d3.select("#renderDiv").selectAll("div").remove()
+    let div = d3.select("#renderDiv").append("div").attr("id", "canvasDiv")
+    div.append("canvas").attr("width", SVGWIDTH).attr("height", SVGHEIGHT)
+    let brush_svg = div.append("svg").attr("width", SVGWIDTH).attr("height", SVGHEIGHT)
+
+    // render canvas
+    let image = new Image;
+    // get svg data
+    var xml = new XMLSerializer().serializeToString(svg._groups[0][0]);
+
+    // make it base64
+    var svg64 = btoa(xml);
+    var b64Start = 'data:image/svg+xml;base64,';
+
+    // prepend a "header"
+    var image64 = b64Start + svg64;
+
+    image.onload = function () {
+        // draw the image onto the canvas
+        var canvas = document.querySelector("canvas"),
+            context = canvas.getContext("2d")
+        context.drawImage(image, 0, 0)
+        // svg.remove()
+        let imgData = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
+        let index, colored_pixels = [];
+        let background_color = d3.rgb(bgcolor)
+        for (let i = 0; i < imgData.height; i++) {
+            for (let j = 0; j < imgData.width; j++) {
+                index = i * imgData.width + j;
+                if (!(imgData.data[index * 4] === background_color.r && imgData.data[index * 4 + 1] === background_color.g && imgData.data[index * 4 + 2] === background_color.b)) {
+                    let color
+                    for (let k = 0; k < used_colors.length; k++) {
+                        if (Math.abs(used_colors[k][0].r - imgData.data[index * 4]) < 2 && Math.abs(used_colors[k][0].g - imgData.data[index * 4 + 1]) < 2 && Math.abs(used_colors[k][0].b - imgData.data[index * 4 + 2]) < 2) {
+                            color = used_colors[k]
+                            break
+                        }
+                    }
+                    if (color)
+                        colored_pixels.push([j, i, color])
+                    else {
+                        imgData.data[index * 4] = background_color.r
+                        imgData.data[index * 4 + 1] = background_color.g
+                        imgData.data[index * 4 + 2] = background_color.b
+                    }
+                }
+            }
+        }
+        console.log(colored_pixels);
+        var brush = d3.brush()
+            .on("start brush", brushed)
+            .on("end", brushended);
+
+        brush_svg.append("g")
+            .attr("class", "brush")
+            .call(brush)
+            .call(brush.move, null);
+        brush_svg.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
+
+        function brushed() {
+            var e = d3.event.selection
+            if (!e) return;
+            // console.log(e[0][0], e[0][1], e[1][0], e[1][1]);
+            for (let i = 0; i < colored_pixels.length; i++) {
+                index = colored_pixels[i][1] * imgData.width + colored_pixels[i][0];
+                if (e[0][0] > colored_pixels[i][0] || colored_pixels[i][0] > e[1][0] || e[0][1] > colored_pixels[i][1] || colored_pixels[i][1] > e[1][1]) {
+                    // not selected
+                    imgData.data[index * 4] = colored_pixels[i][2][1].r
+                    imgData.data[index * 4 + 1] = colored_pixels[i][2][1].g
+                    imgData.data[index * 4 + 2] = colored_pixels[i][2][1].b
+                } else {
+                    // selected
+                    imgData.data[index * 4] = colored_pixels[i][2][0].r
+                    imgData.data[index * 4 + 1] = colored_pixels[i][2][0].g
+                    imgData.data[index * 4 + 2] = colored_pixels[i][2][0].b
+                }
+            }
+
+            putImageData(context, imgData)
+        }
+
+        function brushended() {
+            if (!d3.event.selection) {
+                for (let i = 0; i < colored_pixels.length; i++) {
+                    index = colored_pixels[i][1] * imgData.width + colored_pixels[i][0];
+                    imgData.data[index * 4] = colored_pixels[i][2][0].r
+                    imgData.data[index * 4 + 1] = colored_pixels[i][2][0].g
+                    imgData.data[index * 4 + 2] = colored_pixels[i][2][0].b
+                }
+                putImageData(context, imgData)
+            }
+        }
+
+        function putImageData(ctx, imageData) {
+            var height = imageData.height;
+            var width = imageData.width;
+            for (var y = 0; y < height; y++) {
+                for (var x = 0; x < width; x++) {
+                    var pos = y * width + x;
+                    ctx.fillStyle = 'rgba(' + imageData.data[pos * 4 + 0] +
+                        ',' + imageData.data[pos * 4 + 1] +
+                        ',' + imageData.data[pos * 4 + 2] +
+                        ',' + (imageData.data[pos * 4 + 3] / 255) + ')';
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+    }
+
+    // set it as the source of the img element
+    image.src = image64;
 }
 
 function appendPaletteResult(palette) {
@@ -459,7 +737,7 @@ function appendPaletteResult(palette) {
             .style("text-align", "center").style("padding", "5px")
             .attr("title", function () {
                 if (t[0] === undefined) return "no name";
-                return c3.terms[t[0].index];
+                return c3.terms[t[0].index] + "-" + colorConversionFns['LCH'](d3.lab(palette[i]));
             });
         if (i >= palette_size) continue
         // append lock and unlock sign
@@ -520,13 +798,21 @@ function changeBgcolor() {
     if (bg_icon.attr("class") === "icon_black_bg") {
         bg_icon.attr("class", "icon_white_bg");
         // bgcolor = "#bbb";
-        bgcolor = "#000"
-        // bgcolor = d3.rgb(9, 38, 110)
+        // bgcolor = d3.hsl(120, 1, 0.5);
+        // bgcolor = "#000"
+        // bgcolor = d3.rgb(128, 128, 128)
+        bgcolor = d3.rgb(9, 38, 110)
+        background_color_lab = d3.lab(d3.rgb(bgcolor))
+        // bgcolor = "#4df141";
+        // bgcolor = rgb2hcl(hcl2rgb(d3.hcl(270, 50, 50)));
         renderResult();
+        d3.select(".paletteDiv").style("background", bgcolor)
     } else {
         bg_icon.attr("class", "icon_black_bg");
         bgcolor = "#fff";
+        background_color_lab = d3.lab(d3.rgb(bgcolor))
         renderResult();
+        d3.select(".paletteDiv").style("background", bgcolor)
     }
 }
 
@@ -556,26 +842,41 @@ function drawTransferFunction(palette) {
         if (t[0] != undefined) {
             color_name = c3.terms[t[0].index]
         }
+        // color_name = ""
+        // for (let j = 0; j < 3; j++) {
+        //     color_name += c3.terms[t[j].index] + "(" + (t[j].score).toFixed(2) + ")-"
+        // }
 
         // c = getColorNameIndex(d3.rgb(palette[id + x_labels.length]))
-        // t = c3.color.relatedTerms(c, 1);
+        // t = c3.color.relatedTerms(c, 3);
         // let color_name2 = "undefined"
         // if (t[0] != undefined) {
         //     color_name2 = c3.terms[t[0].index]
         // }
+        // color_name2 = ""
+        // for (let j = 0; j < 3; j++) {
+        //     color_name2 += c3.terms[t[j].index] + "(" + (t[j].score).toFixed(2) + ")-"
+        // }
         dataForm += ("<tr><td><span class=\'icon_box-empty\' classId=\'" + labelToClass[x_labels[i]] + "\' id=\'icon_lock-" + labelToClass[x_labels[i]] + "\' style=\'display:inline-block;\' onclick=\'lockThisRect(this);\'></span>" +
-            "</td><td>" +
-            "<span class=\'tf_rect\' classId=\'" + labelToClass[x_labels[i]] + "\' style=\'background:" + palette[id] + ";\' onclick=\'lockThisRect(this);\'></span>" +
             "</td><td>" +
             x_labels[i] +
             "</td><td>" +
-            color_name +
+            "<span class=\'tf_rect\' classId=\'" + labelToClass[x_labels[i]] + "\' style=\'background:" + palette[id] + ";\' onclick=\'lockThisRect(this);\'></span>" +
+            // colorConversionFns['LCH'](palette[id]) +
+            "</td><td>" +
+            color_name + //"-" + getNameDifference(palette[id], palette[id + x_labels.length]).toFixed(2) + "-" +
             // "</td><td>" +
             // color_name2 +
             "</td><td>" +
-            colorConversionFns['Hex'](palette[id]) +
-            // colorConversionFns['Lab'](d3.lab(d3.rgb(palette[id]))) +
-            // colorConversionFns['HSL'](palette[id + x_labels.length]) +
+            colorConversionFns['Hex'](palette[id]) + "-" +
+            (d3.hsl(palette[id])).l.toFixed(2) + "-" +
+            (d3.hsl(palette[id + x_labels.length])).l.toFixed(2) +
+            // colorConversionFns['LCH2'](palette[id + x_labels.length]) +
+            // ((d3.lab(d3.rgb(palette[id])))).L.toFixed(0) + "-" +
+            // ((d3.lab(d3.rgb(palette[id + x_labels.length])))).L.toFixed(0) + "-" +
+            // (d3.hsl(palette[id])).l.toFixed(2) + "-" +
+            // (colorConversionFns['Lab'](d3.lab(d3.rgb(palette[id + x_labels.length]))))+
+            // (colorConversionFns['HSL'](palette[id + x_labels.length])) +
             // (palette[id + x_labels.length].l).toFixed(2) +
             // getNameDifference(palette[id], palette[id + x_labels.length]).toFixed(2) +
             "</td></tr>");
@@ -589,14 +890,471 @@ function lockThisRect(item) {
     spans.each(function () {
         palette.push(d3.rgb(d3.select(this).attr("color")))
     });
-
+    let class_number = Object.keys(labelToClass).length
+    let typeId = d3.select("#renderDiv").select("svg").attr("typeId")
     let choosed_id = +d3.select(item).attr("classId")
     if (d3.select("#icon_lock-" + choosed_id).attr("class") === "icon_box-empty") {
         d3.select("#icon_lock-" + choosed_id).attr("class", "icon_box-checked")
-        updateSvg(palette, d3.select("#renderSvg"), choosed_id)
+        // updateSvg(palette, d3.select("#renderSvg"), choosed_id)
+        // d3.select("#renderDiv").selectAll("#class_" + choosed_id).attr("fill", function (d) {
+        //     return d3.select(this).attr("item-color")
+        // });
+        for (let i = 0; i < class_number; i++) {
+            if (choosed_id != i && d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
+                d3.select("#renderDiv").selectAll("#class_" + i)
+                    .attr("fill", function (d) {
+                        if (typeId != "line")
+                            return d3.select(this).attr("faint-color")
+                        else
+                            return "none"
+                    })
+                    .attr("stroke", function () {
+                        if (typeId == "line")
+                            return d3.select(this).attr("faint-color")
+                        else
+                            return "none"
+                    })
+            else {
+                d3.select("#renderDiv").selectAll("#class_" + i)
+                    .attr("fill", function (d) {
+                        if (typeId != "line")
+                            return d3.select(this).attr("item-color")
+                        else
+                            return "none"
+                    })
+                    .attr("stroke", function () {
+                        if (typeId == "line")
+                            return d3.select(this).attr("item-color")
+                        else
+                            return "none"
+                    })
+                    .raise();
+            }
+
+        }
     }
     else {
         d3.select("#icon_lock-" + choosed_id).attr("class", "icon_box-empty")
-        updateSvg(palette, d3.select("#renderSvg"), -1)
+        // updateSvg(palette, d3.select("#renderSvg"), -1)
+        for (let i = 0; i < class_number; i++) {
+            if (d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
+                d3.select("#renderDiv").selectAll("#class_" + i)
+                    .attr("fill", function (d) {
+                        if (typeId != "line")
+                            return d3.select(this).attr("faint-color")
+                        else
+                            return "none"
+                    })
+                    .attr("stroke", function () {
+                        if (typeId == "line")
+                            return d3.select(this).attr("faint-color")
+                        else
+                            return "none"
+                    })
+            else {
+                d3.select("#renderDiv").selectAll("#class_" + i)
+                    .attr("fill", function (d) {
+                        if (typeId != "line")
+                            return d3.select(this).attr("item-color")
+                        else
+                            return "none"
+                    })
+                    .attr("stroke", function () {
+                        if (typeId == "line")
+                            return d3.select(this).attr("item-color")
+                        else
+                            return "none"
+                    })
+                    .raise(); // https://stackoverflow.com/questions/24045673/reorder-elements-of-svg-z-index-in-d3-js
+            }
+
+        }
     }
+}
+
+/**
+ * https://bl.ocks.org/Fil/6d9de24b31cb870fed2e6178a120b17d
+ * @param {*} used_palette 
+ */
+function appendScatterplotMatrixCars(used_palette) {
+    d3.select("#outputDiv").select("svg").remove()
+    var size = 230,
+        padding = 20;
+
+    var x = d3.scaleLinear()
+        .range([padding / 2, size - padding / 2]);
+
+    var y = d3.scaleLinear()
+        .range([size - padding / 2, padding / 2]);
+
+    var xAxis = d3.axisBottom()
+        .scale(x)
+        .ticks(6);
+
+    var yAxis = d3.axisLeft()
+        .scale(y)
+        .ticks(6);
+
+    // var color = d3.scaleOrdinal(d3.schemeCategory10);
+    let getLabel = function (d) {
+        return d["LITH"]
+    }
+
+    d3.csv("./data/Xeek_Well_15-9-15.csv", function (error, data) {
+        if (error) throw error;
+
+        console.log("original:", data);
+        data = data.filter(function (d) {
+            return Math.random() < 0.15 && d['GR'] != '' && +d['GR'] <= 120 && d['NPHI'] != '' && d['DTC'] != '' && d['RHOB'] != ''
+        })
+        console.log("filtered:", data);
+        var domainByTrait = {},
+            traits = d3.keys(data[0]).filter(function (d) {
+                return d == "RHOB" || d == "GR" || d == "NPHI" || d == "DTC";
+            }),
+            n = traits.length;
+
+        traits.forEach(function (trait) {
+            domainByTrait[trait] = d3.extent(data, function (d) { return +d[trait]; });
+        });
+
+        console.log("traits:", traits);
+
+        xAxis.tickSize(size * n);
+        yAxis.tickSize(-size * n);
+
+        var brush = d3.brush()
+            .on("start", brushstart)
+            .on("brush", brushmove)
+            .on("end", brushend)
+            .extent([[0, 0], [size, size]]);
+
+        var svg = d3.select("#outputDiv").append("svg")
+            .attr("width", size * n + padding * 2)
+            .attr("height", size * n + padding * 2)
+            .append("g")
+            .attr("transform", "translate(" + padding + "," + padding / 2 + ")");
+
+        svg.selectAll(".x.axis")
+            .data(traits)
+            .enter().append("g")
+            .attr("class", "x axis")
+            .attr("transform", function (d, i) { return "translate(" + (n - i - 1) * size + ",0)"; })
+            .each(function (d) { x.domain(domainByTrait[d]); d3.select(this).call(xAxis); });
+
+        svg.selectAll(".y.axis")
+            .data(traits)
+            .enter().append("g")
+            .attr("class", "y axis")
+            .attr("transform", function (d, i) { return "translate(0," + i * size + ")"; })
+            .each(function (d) { y.domain(domainByTrait[d]); d3.select(this).call(yAxis); });
+
+        var cell = svg.selectAll(".cell")
+            .data(cross(traits, traits))
+            .enter().append("g")
+            .attr("class", "cell")
+            .attr("transform", function (d) { return "translate(" + (n - d.i - 1) * size + "," + d.j * size + ")"; })
+            .each(plot);
+
+        // Titles for the diagonal.
+        cell.filter(function (d) { return d.i === d.j; }).append("text")
+            .attr("x", padding)
+            .attr("y", padding)
+            .attr("dy", ".71em")
+            .text(function (d) { return d.x; });
+
+        cell.call(brush);
+
+        cell.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
+
+        function plot(p) {
+            // console.log(p);
+            var cell = d3.select(this);
+
+            x.domain(domainByTrait[p.x]);
+            y.domain(domainByTrait[p.y]);
+
+            cell.append("rect")
+                .attr("class", "frame")
+                // .style("shape-rendering", "crispEdges")
+                // .attr("fill", "none")
+                // .style("stroke", "#aaa")
+                .attr("x", padding / 2)
+                .attr("y", padding / 2)
+                .attr("width", size - padding)
+                .attr("height", size - padding);
+
+            cell.selectAll("circle")
+                .data(orderData(data))
+                .enter().append("circle")
+                .attr("cx", function (d) { return x(d[p.x]); })
+                .attr("cy", function (d) { return y(d[p.y]); })
+                .attr("r", 4)
+                .attr("fill", function (d) {
+                    return used_palette[labelToClass[getLabel(d)]];
+                })
+                .attr("item-color", function (d) {
+                    return used_palette[labelToClass[getLabel(d)]];
+                })
+                .attr("faint-color", function (d) {
+                    return used_palette[labelToClass[getLabel(d)] + used_palette.length / 2];
+                })
+        }
+
+        var brushCell;
+
+        // Clear the previously-active brush, if any.
+        function brushstart(p) {
+            if (brushCell !== this) {
+                d3.select(brushCell).call(brush.move, null);
+                brushCell = this;
+                x.domain(domainByTrait[p.x]);
+                y.domain(domainByTrait[p.y]);
+            }
+        }
+        // Highlight the selected circles.
+        function brushmove(p) {
+            var e = d3.brushSelection(this);
+
+            svg.selectAll("circle").attr("fill", function (d) {
+                return !e
+                    ? d3.select(this).attr("item-color")
+                    : ((
+                        e[0][0] > x(+d[p.x]) || x(+d[p.x]) > e[1][0]
+                        || e[0][1] > y(+d[p.y]) || y(+d[p.y]) > e[1][1]
+                    ) ? d3.select(this).attr("faint-color") : d3.select(this).attr("item-color"));
+
+                if (!e) {
+                    return d3.select(this).attr("item-color")
+                } else {
+                    if (
+                        e[0][0] > x(+d[p.x]) || x(+d[p.x]) > e[1][0]
+                        || e[0][1] > y(+d[p.y]) || y(+d[p.y]) > e[1][1]
+                    ) {
+                        d3.select(this).lower()
+                        return d3.select(this).attr("faint-color")
+                    } else {
+                        return d3.select(this).attr("item-color")
+                    }
+                }
+            }).raise()
+            svg.selectAll("rect").raise()
+        }
+
+        // If the brush is empty, select all circles.
+        function brushend() {
+            var e = d3.brushSelection(this);
+            if (e === null) cell.selectAll("circle").attr("fill", function (d) {
+                return d3.select(this).attr("item-color")
+            });
+        }
+
+    });
+
+    function cross(a, b) {
+        var c = [], n = a.length, m = b.length, i, j;
+        for (i = -1; ++i < n;) for (j = -1; ++j < m;) c.push({ x: a[i], i: i, y: b[j], j: j });
+        return c;
+    }
+
+    function orderData(originData) {
+        let tmp = []
+        for (let d of originData) {
+            if (!tmp[getLabel(d)]) tmp[getLabel(d)] = []
+            tmp[getLabel(d)].push(d)
+        }
+        let arr = []
+        for (let key in tmp) {
+            arr.push([tmp[key].length, tmp[key]])
+        }
+        arr.sort(function (a, b) {
+            return b[0] - a[0]
+        })
+        let result = []
+        for (let a of arr) {
+            result = result.concat(a[1])
+        }
+        return result
+    }
+
+}
+
+
+function appendScatterplotMatrix(used_palette) {
+    d3.select("#outputDiv").select("svg").remove()
+    var size = 230,
+        padding = 20;
+
+    var x = d3.scaleLinear()
+        .range([padding / 2, size - padding / 2]);
+
+    var y = d3.scaleLinear()
+        .range([size - padding / 2, padding / 2]);
+
+    var xAxis = d3.axisBottom()
+        .scale(x)
+        .ticks(6);
+
+    var yAxis = d3.axisLeft()
+        .scale(y)
+        .ticks(6);
+
+    // var color = d3.scaleOrdinal(d3.schemeCategory10);
+    let getLabel = function (d) {
+        return d["LITH"]
+    }
+
+    d3.csv("./data/" + source_datasets_names[0], function (error, data) {
+        if (error) throw error;
+
+        // console.log("original:", data);
+        data = data.filter(function (d) {
+            return d['GR'] != '' && +d['GR'] <= 120 && d['NPHI'] != '' && d['DTC'] != '' && d['RHOB'] != ''
+        })
+        // console.log("filtered:", data);
+        var domainByTrait = {},
+            traits = d3.keys(data[0]).filter(function (d) {
+                return d == "RHOB" || d == "GR" || d == "NPHI" || d == "DTC";
+            }),
+            n = traits.length;
+
+        traits.forEach(function (trait) {
+            domainByTrait[trait] = d3.extent(data, function (d) { return +d[trait]; });
+        });
+        // data = output_data_global
+        // console.log("traits:", traits);
+
+        xAxis.tickSize(size * n);
+        yAxis.tickSize(-size * n);
+
+        var brush = d3.brush()
+            .on("start", brushstart)
+            .on("brush", brushmove)
+            .on("end", brushend)
+            .extent([[0, 0], [size, size]]);
+
+        var svg = d3.select("#outputDiv").append("svg")
+            .attr("width", size * n + padding * 2)
+            .attr("height", size * n + padding * 2)
+            .append("g")
+            .attr("transform", "translate(" + padding + "," + padding / 2 + ")");
+
+        svg.selectAll(".x.axis")
+            .data(traits)
+            .enter().append("g")
+            .attr("class", "x axis")
+            .attr("transform", function (d, i) { return "translate(" + (n - i - 1) * size + ",0)"; })
+            .each(function (d) { x.domain(domainByTrait[d]); d3.select(this).call(xAxis); });
+
+        svg.selectAll(".y.axis")
+            .data(traits)
+            .enter().append("g")
+            .attr("class", "y axis")
+            .attr("transform", function (d, i) { return "translate(0," + i * size + ")"; })
+            .each(function (d) { y.domain(domainByTrait[d]); d3.select(this).call(yAxis); });
+
+        var cell = svg.selectAll(".cell")
+            .data(cross(traits, traits))
+            .enter().append("g")
+            .attr("class", "cell")
+            .attr("transform", function (d) { return "translate(" + (n - d.i - 1) * size + "," + d.j * size + ")"; })
+            .each(plot);
+
+        // Titles for the diagonal.
+        cell.filter(function (d) { return d.i === d.j; }).append("text")
+            .attr("x", padding)
+            .attr("y", padding)
+            .attr("dy", ".71em")
+            .text(function (d) { return d.x; });
+
+        cell.call(brush);
+
+        cell.selectAll(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
+
+        function plot(p) {
+            // console.log(p);
+            var cell = d3.select(this);
+
+            x.domain(domainByTrait[p.x]);
+            y.domain(domainByTrait[p.y]);
+
+            cell.append("rect")
+                .attr("class", "frame")
+                // .style("shape-rendering", "crispEdges")
+                // .attr("fill", "none")
+                // .style("stroke", "#aaa")
+                .attr("x", padding / 2)
+                .attr("y", padding / 2)
+                .attr("width", size - padding)
+                .attr("height", size - padding);
+
+            cell.selectAll("circle")
+                .data(data)
+                .enter().append("circle")
+                .attr("cx", function (d) { return x(d[p.x]); })
+                .attr("cy", function (d) { return y(d[p.y]); })
+                .attr("r", 3)
+                .attr("fill", function (d) {
+                    return used_palette[labelToClass[getLabel(d)]];
+                })
+                .attr("item-color", function (d) {
+                    return used_palette[labelToClass[getLabel(d)]];
+                })
+                .attr("faint-color", function (d) {
+                    return used_palette[labelToClass[getLabel(d)] + used_palette.length / 2];
+                })
+        }
+
+        var brushCell;
+
+        // Clear the previously-active brush, if any.
+        function brushstart(p) {
+            if (brushCell !== this) {
+                d3.select(brushCell).call(brush.move, null);
+                brushCell = this;
+                x.domain(domainByTrait[p.x]);
+                y.domain(domainByTrait[p.y]);
+            }
+        }
+        // Highlight the selected circles.
+        function brushmove(p) {
+            var e = d3.brushSelection(this);
+            d3.select("#outputDiv").selectAll("circle").attr("fill", function (d) {
+
+                if (!e) {
+                    return d3.select(this).attr("item-color")
+                } else {
+                    if (
+                        e[0][0] > x(+d[p.x]) || x(+d[p.x]) > e[1][0]
+                        || e[0][1] > y(+d[p.y]) || y(+d[p.y]) > e[1][1]
+                    ) {
+                        // d3.select(this).lower()
+                        return d3.select(this).attr("faint-color")
+                    } else {
+                        d3.select(this).raise()
+                        return d3.select(this).attr("item-color")
+                    }
+                }
+            })
+
+            d3.select("#outputDiv").selectAll("rect").raise()
+        }
+
+        // If the brush is empty, select all circles.
+        function brushend() {
+            var e = d3.brushSelection(this);
+            if (e === null) d3.select("#outputDiv").selectAll("circle").attr("fill", function (d) {
+                return d3.select(this).attr("item-color")
+            });
+        }
+
+    });
+
+    function cross(a, b) {
+        var c = [], n = a.length, m = b.length, i, j;
+        for (i = -1; ++i < n;) for (j = -1; ++j < m;) c.push({ x: a[i], i: i, y: b[j], j: j });
+        return c;
+    }
+
+
 }
