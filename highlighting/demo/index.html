@@ -162,7 +162,8 @@
         <button class="tablinks" onclick="openTab(event, 'fig-16-div')">Fig.16</button>
         <button class="tablinks" onclick="openTab(event, 'matrix-div')">Scatterplot Matrix</button>
         <button class="tablinks" onclick="openTab(event, 'multiview-div')">Multi-view</button>
-        <h3>For each example, we provide both legend selection and brushing selection. You can click the legend to select a group of colors or brushing the interest points. </h3>
+        <h3>For each example, we provide both legend selection and brushing selection. You can click the legend to
+            select a group of colors or brushing the interest points. </h3>
     </div>
 
     <div id="fig-1-div" class="tabcontent">
@@ -429,14 +430,15 @@
             .attr("faint-color", function (d) {
                 return palette[labelToClass[cValue(d)] + palette.length / 2];
             })
-            .on("click", function () {
+            .on("click", function (d) {
+                console.log(xMap(d), yMap(d));
                 // console.log("click point");
                 d3.select(this).attr("fill", function (d) {
                     return palette[labelToClass[cValue(d)]];
                 }).raise();
             })
 
-        scatterplot.call(brush);
+        scatterplot.call(brush).call(brush.move, [[152, 358], [425, 465]]);
         // add the x Axis
         scatterplot.append("g")
             .attr("transform", "translate(0," + svg_height + ")")
