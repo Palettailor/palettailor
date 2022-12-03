@@ -88,7 +88,7 @@ function doColorization() {
         console.log(id2, dscores[id2]);
         appendScatterplot(dscores[id2][3])
     }
-    // used_palette = line0
+    // used_palette = mulv
     // show the salient and faint palettes
     if (false) {
         // used_palette = case1
@@ -123,13 +123,13 @@ function doColorization() {
         appendPaletteResult(used_palette_0);
         d3.select(".paletteDiv").append("br")
 
-        for (let i = 0; i < class_number; i++) {
-            used_palette_0[i] = used_palette_0[i + class_number]
-        }
-        console.log("=======================================================");
-        appendScatterplot(used_palette_0)
-        appendPaletteResult(used_palette_0);
-        d3.select(".paletteDiv").append("br")
+        // for (let i = 0; i < class_number; i++) {
+        //     used_palette_0[i] = used_palette_0[i + class_number]
+        // }
+        // console.log("=======================================================");
+        // appendScatterplot(used_palette_0)
+        // appendPaletteResult(used_palette_0);
+        // d3.select(".paletteDiv").append("br")
     }
 
     // show different conditions
