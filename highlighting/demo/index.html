@@ -168,6 +168,8 @@
 
     <div id="fig-1-div" class="tabcontent">
         <h1>Fig.1 for Synthetic data with different highlighting methods</h1>
+        <div id="fig-1-div-left" style="width: 50%;display: inline-block;"></div>
+        <div id="fig-1-div-right" style="width: 45%;display: inline-block;vertical-align:top;"></div>
     </div>
 
     <div id="fig-14-div" class="tabcontent">
@@ -176,6 +178,8 @@
 
     <div id="fig-15-div" class="tabcontent">
         <h1>Fig.15 for Mnist data with different highlighting methods</h1>
+        <div id="fig-15-div-left" style="width: 50%;display: inline-block;"></div>
+        <div id="fig-15-div-right" style="width: 45%;display: inline-block;vertical-align:top;"></div>
     </div>
 
     <div id="fig-16-div" class="tabcontent">
@@ -183,7 +187,7 @@
     </div>
 
     <div id="matrix-div" class="tabcontent">
-        <h1>Scatterplot Matrix (Dataset from <a
+        <h1>Interactive Scatterplot Matrix (Dataset from <a
                 href="https://towardsdatascience.com/seaborn-pairplot-enhance-your-data-understanding-with-a-single-plot-bf2f44524b22"
                 target="_blank">Force 2020 Machine Learning competition</a>)</h1>
         <div id="d3v4matrixDiv" style="display: inline-block;">
@@ -214,7 +218,8 @@
     </div>
 
     <div id="multiview-div" class="tabcontent">
-        <h1>Multi-view</h1>
+        <h1>Interactive Multi-View Displays From <a href="https://vega.github.io/vega-lite/examples/"
+            target="_blank">Vega-Lite Example Gallery</a></h1>
         <div id="vegaLiteDiv" style="display: inline-block;">
             <h3>
                 Refer to:
@@ -792,29 +797,29 @@
         for (let i = 0; i < class_number; i++) {
             used_palette[i + class_number] = "#ccc"
         }
-        drawInteractiveScatterplot(fig_1_data, "fig-1-div", used_palette, "Tableau (default assignment) with Canonical Highlighting", labelToClass)
+        drawInteractiveScatterplot(fig_1_data, "fig-1-div-left", used_palette, "Tableau (default assignment) with Canonical Highlighting", labelToClass)
 
         used_palette = fig_1_palettailor.slice()
         for (let i = 0; i < class_number; i++) {
             let hsl = d3.hsl(used_palette[i])
             used_palette[i + class_number] = d3.hsl(hsl.h, hsl.s, 0.9)
         }
-        drawInteractiveScatterplot(fig_1_data, "fig-1-div", used_palette, "Palettailor with Lightness Adjustment", labelToClass)
+        drawInteractiveScatterplot(fig_1_data, "fig-1-div-left", used_palette, "Palettailor with Lightness Adjustment", labelToClass)
 
         used_palette = fig_1_palettailor.slice()
         for (let i = 0; i < class_number; i++) {
             used_palette[i + class_number] = used_palette[i]
         }
-        drawInteractiveScatterplot(fig_1_data, "fig-1-div", used_palette, "Palettailor with Alpha Blending", labelToClass, 1)
+        drawInteractiveScatterplot(fig_1_data, "fig-1-div-left", used_palette, "Palettailor with Alpha Blending", labelToClass, 1)
 
         used_palette = fig_1_tableau_optimal.slice()
         for (let i = 0; i < class_number; i++) {
             used_palette[i + class_number] = tableau_10[used_palette[i]]
         }
-        drawInteractiveScatterplot(fig_1_data, "fig-1-div", used_palette, "Tableau (optimal assignment) with Tableau Highlighter", labelToClass)
+        drawInteractiveScatterplot(fig_1_data, "fig-1-div-left", used_palette, "Tableau (optimal assignment) with Tableau Highlighter", labelToClass)
 
         used_palette = fig_1_ours.slice()
-        drawInteractiveScatterplot(fig_1_data, "fig-1-div", used_palette, "Our Context-preserving Highlighting", labelToClass)
+        drawInteractiveScatterplot(fig_1_data, "fig-1-div-right", used_palette, "Our Context-preserving Highlighting", labelToClass)
 
         // Fig.14
         bgcolor = d3.rgb(9, 38, 110)
@@ -861,29 +866,29 @@
         for (let i = 0; i < class_number; i++) {
             used_palette[i + class_number] = "#ccc"
         }
-        drawInteractiveScatterplot(fig_15_data, "fig-15-div", used_palette, "Tableau (default assignment) with Canonical Highlighting", labelToClass)
+        drawInteractiveScatterplot(fig_15_data, "fig-15-div-left", used_palette, "Tableau (default assignment) with Canonical Highlighting", labelToClass)
 
         used_palette = fig_15_palettailor.slice()
         for (let i = 0; i < class_number; i++) {
             let hsl = d3.hsl(used_palette[i])
             used_palette[i + class_number] = d3.hsl(hsl.h, hsl.s, 0.9)
         }
-        drawInteractiveScatterplot(fig_15_data, "fig-15-div", used_palette, "Palettailor with Lightness Adjustment", labelToClass)
+        drawInteractiveScatterplot(fig_15_data, "fig-15-div-left", used_palette, "Palettailor with Lightness Adjustment", labelToClass)
 
         used_palette = fig_15_palettailor.slice()
         for (let i = 0; i < class_number; i++) {
             used_palette[i + class_number] = used_palette[i]
         }
-        drawInteractiveScatterplot(fig_15_data, "fig-15-div", used_palette, "Palettailor with Alpha Blending", labelToClass, 1)
+        drawInteractiveScatterplot(fig_15_data, "fig-15-div-left", used_palette, "Palettailor with Alpha Blending", labelToClass, 1)
 
         used_palette = fig_15_optimal_tableau.slice()
         for (let i = 0; i < class_number; i++) {
             used_palette[i + class_number] = tableau_10[used_palette[i]]
         }
-        drawInteractiveScatterplot(fig_15_data, "fig-15-div", used_palette, "Tableau (optimal assignment) with Tableau Highlighter", labelToClass)
+        drawInteractiveScatterplot(fig_15_data, "fig-15-div-left", used_palette, "Tableau (optimal assignment) with Tableau Highlighter", labelToClass)
 
         used_palette = fig_15_ours.slice()
-        drawInteractiveScatterplot(fig_15_data, "fig-15-div", used_palette, "Our Context-preserving Highlighting", labelToClass)
+        drawInteractiveScatterplot(fig_15_data, "fig-15-div-right", used_palette, "Our Context-preserving Highlighting", labelToClass)
 
     }
 
@@ -1259,6 +1264,7 @@
                     "color": {
                         "condition": { "param": "brush", "field": "weather" },
                         "field": "weather2",
+                        "title":"Weather",
                         "type": "nominal",
                         "scale": {
                             "domain": [
