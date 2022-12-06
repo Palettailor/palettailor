@@ -159,7 +159,7 @@
         <button class="tablinks" onclick="openTab(event, 'fig-1-div')">Fig.1</button>
         <button class="tablinks" onclick="openTab(event, 'fig-14-div')">Fig.14</button>
         <button class="tablinks" onclick="openTab(event, 'fig-15-div')">Fig.15</button>
-        <button class="tablinks" onclick="openTab(event, 'fig-16-div')">Fig.16</button>
+        <button class="tablinks" onclick="openTab(event, 'fig-16-div')">Line Chart</button>
         <button class="tablinks" onclick="openTab(event, 'matrix-div')">Scatterplot Matrix</button>
         <button class="tablinks" onclick="openTab(event, 'multiview-div')">Multi-view</button>
         <h3>For each example, we provide both legend selection and brushing selection. You can click the legend to
@@ -219,7 +219,7 @@
 
     <div id="multiview-div" class="tabcontent">
         <h1>Interactive Multi-View Displays From <a href="https://vega.github.io/vega-lite/examples/"
-            target="_blank">Vega-Lite Example Gallery</a></h1>
+                target="_blank">Vega-Lite Example Gallery</a></h1>
         <div id="vegaLiteDiv" style="display: inline-block;">
             <h3>
                 Refer to:
@@ -506,131 +506,6 @@
         }
     }
 
-
-    /**
-     * https://bl.ocks.org/mbostock/0d20834e3d5a46138752f86b9b79727e
-     * @param {*} svg 
-     * @param {*} used_palette 
-     */
-    function transferSvgToCanvas(svg, used_palette, divParent) {
-        let used_colors = [], class_number = used_palette.length / 2
-        for (let i = 0; i < class_number; i++) {
-            used_colors.push([d3.rgb(used_palette[i]), d3.rgb(used_palette[i + class_number])])
-        }
-        // console.log(used_colors);
-        let div = divParent.append("div").attr("id", "canvasDiv")
-        let canvas_id = "cid-" + new Date().getTime()
-        div.append("canvas").attr("id", canvas_id).attr("width", SVGWIDTH).attr("height", SVGHEIGHT)
-        let brush_svg = div.append("svg").attr("width", SVGWIDTH).attr("height", SVGHEIGHT)
-
-        // render canvas
-        let image = new Image;
-        // get svg data
-        var xml = new XMLSerializer().serializeToString(svg._groups[0][0]);
-
-        // make it base64
-        var svg64 = btoa(xml);
-        var b64Start = 'data:image/svg+xml;base64,';
-
-        // prepend a "header"
-        var image64 = b64Start + svg64;
-
-        image.onload = function () {
-            // draw the image onto the canvas
-            var canvas = document.getElementById(canvas_id),
-                context = canvas.getContext("2d")
-            context.drawImage(image, 0, 0)
-            // svg.remove()
-            let imgData = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
-            let index, colored_pixels = [];
-            let background_color = d3.rgb(bgcolor)
-            for (let i = 0; i < imgData.height; i++) {
-                for (let j = 0; j < imgData.width; j++) {
-                    index = i * imgData.width + j;
-                    if (!(imgData.data[index * 4] === background_color.r && imgData.data[index * 4 + 1] === background_color.g && imgData.data[index * 4 + 2] === background_color.b)) {
-                        let color
-                        for (let k = 0; k < used_colors.length; k++) {
-                            if (Math.abs(used_colors[k][0].r - imgData.data[index * 4]) < 2 && Math.abs(used_colors[k][0].g - imgData.data[index * 4 + 1]) < 2 && Math.abs(used_colors[k][0].b - imgData.data[index * 4 + 2]) < 2) {
-                                color = used_colors[k]
-                                break
-                            }
-                        }
-                        if (color)
-                            colored_pixels.push([j, i, color])
-                        else {
-                            imgData.data[index * 4] = background_color.r
-                            imgData.data[index * 4 + 1] = background_color.g
-                            imgData.data[index * 4 + 2] = background_color.b
-                        }
-                    }
-                }
-            }
-            // console.log(colored_pixels);
-            var brush = d3.brush()
-                .on("start brush", brushed)
-                .on("end", brushended);
-
-            brush_svg.append("g")
-                .attr("class", "brush")
-                .call(brush)
-                .call(brush.move, null);
-            brush_svg.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
-
-            function brushed() {
-                var e = d3.event.selection
-                if (!e) return;
-                // console.log(e[0][0], e[0][1], e[1][0], e[1][1]);
-                for (let i = 0; i < colored_pixels.length; i++) {
-                    index = colored_pixels[i][1] * imgData.width + colored_pixels[i][0];
-                    if (e[0][0] > colored_pixels[i][0] || colored_pixels[i][0] > e[1][0] || e[0][1] > colored_pixels[i][1] || colored_pixels[i][1] > e[1][1]) {
-                        // not selected
-                        imgData.data[index * 4] = colored_pixels[i][2][1].r
-                        imgData.data[index * 4 + 1] = colored_pixels[i][2][1].g
-                        imgData.data[index * 4 + 2] = colored_pixels[i][2][1].b
-                    } else {
-                        // selected
-                        imgData.data[index * 4] = colored_pixels[i][2][0].r
-                        imgData.data[index * 4 + 1] = colored_pixels[i][2][0].g
-                        imgData.data[index * 4 + 2] = colored_pixels[i][2][0].b
-                    }
-                }
-
-                putImageData(context, imgData)
-            }
-
-            function brushended() {
-                if (!d3.event.selection) {
-                    for (let i = 0; i < colored_pixels.length; i++) {
-                        index = colored_pixels[i][1] * imgData.width + colored_pixels[i][0];
-                        imgData.data[index * 4] = colored_pixels[i][2][0].r
-                        imgData.data[index * 4 + 1] = colored_pixels[i][2][0].g
-                        imgData.data[index * 4 + 2] = colored_pixels[i][2][0].b
-                    }
-                    putImageData(context, imgData)
-                }
-            }
-
-            function putImageData(ctx, imageData) {
-                var height = imageData.height;
-                var width = imageData.width;
-                for (var y = 0; y < height; y++) {
-                    for (var x = 0; x < width; x++) {
-                        var pos = y * width + x;
-                        ctx.fillStyle = 'rgba(' + imageData.data[pos * 4 + 0] +
-                            ',' + imageData.data[pos * 4 + 1] +
-                            ',' + imageData.data[pos * 4 + 2] +
-                            ',' + (imageData.data[pos * 4 + 3] / 255) + ')';
-                        ctx.fillRect(x, y, 1, 1);
-                    }
-                }
-            }
-        }
-
-        // set it as the source of the img element
-        image.src = image64;
-    }
-
-
     function drawInteractiveLinechart(data, divId, palette, title, labelToClass, isOpacity) {
         let xScale, xMap, xAxis, yScale, yMap, yAxis;
         // set the ranges
@@ -658,6 +533,72 @@
         let linechart = linechart_svg.style("background-color", bgcolor)
             .append("g")
             .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")");
+
+        var brush = d3.brush()
+            .on("start", brushstart)
+            .on("brush", brushmove)
+            .on("end", brushend)
+            .extent([[0, 0], [svg_width, svg_height]]);
+        var brushCell;
+        // Clear the previously-active brush, if any.
+        function brushstart(p) {
+            // console.log("brush start");
+            if (brushCell !== this) {
+                d3.select(brushCell).call(brush.move, null);
+                brushCell = this;
+            }
+        }
+
+        let clip_id = "clip_" + new Date().getTime()
+        var clip = linechart_svg.append("defs").append("svg:clipPath")
+            .attr("id", clip_id)
+            .append("svg:rect")
+            .attr("width", svg_width)
+            .attr("height", svg_height)
+            .attr("x", 0)
+            .attr("y", 0);
+
+        var focus_chart = linechart_svg.append("g")
+            .attr("class", "focus")
+            .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")")
+            .attr("clip-path", "url(#" + clip_id + ")");
+
+        // Highlight the selected circles.
+        function brushmove(p) {
+            // console.log("brush move");
+            var e = d3.brushSelection(this);
+            let x, y, width, height
+            if (!e) {
+                x = 0
+                y = 0
+                width = svg_width
+                height = svg_height
+            } else {
+                x = e[0][0]
+                y = e[0][1]
+                width = e[1][0] - x
+                height = e[1][1] - y
+            }
+            clip.attr("width", width)
+                .attr("height", height)
+                .attr("x", x)
+                .attr("y", y);
+        }
+
+        // If the brush is empty, select all circles.
+        function brushend() {
+            // console.log("brush end");
+            var e = d3.brushSelection(this);
+            if (e === null) {
+                focus_chart.selectAll('.linechart-focus').attr("stroke", function (d) {
+                    return d3.select(this).attr("item-color")
+                })
+                clip.attr("width", svg_width)
+                    .attr("height", svg_height)
+                    .attr("x", 0)
+                    .attr("y", 0);
+            }
+        }
 
         // Scale the range of the data
         xScale.domain(d3.extent(data, function (d) {
@@ -691,11 +632,11 @@
             })
             .attr("class", "linechart")
             .attr("id", function (d) {
-                return "class_" + labelToClass[cValue(d)];
+                return "faint-class_" + labelToClass[cValue(d)];
             })
             .attr("fill", "none")
             .attr("stroke", function (d) {
-                return palette[labelToClass[cValue(d)]];
+                return palette[labelToClass[cValue(d)] + palette.length / 2];
             })
             .style("stroke-width", radius)
             .attr("item-color", function (d) {
@@ -709,6 +650,30 @@
 
             })
 
+        focus_chart.selectAll('.linechart-focus')
+            .data(linechart_source_data).enter().append("path")
+            .attr("d", function (d) {
+                return valueline(d.p);
+            })
+            .attr("class", "linechart-focus")
+            .attr("id", function (d) {
+                return "class_" + labelToClass[cValue(d)];
+            })
+            .attr("fill", "none")
+            .attr("stroke", function (d) {
+                return palette[labelToClass[cValue(d)]];
+            })
+            .style("stroke-width", radius)
+            .attr("item-color", function (d) {
+                return palette[labelToClass[cValue(d)]];
+            })
+            .attr("faint-color", function (d) {
+                return palette[labelToClass[cValue(d)] + palette.length / 2];
+            })
+
+        linechart.call(brush).call(brush.move, [[345, 10], [500, 335]]);
+
+        linechart_svg.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
         // Add the X Axis
         linechart.append("g")
             .attr("transform", "translate(0," + svg_height + ")")
@@ -717,8 +682,6 @@
         // Add the Y Axis
         linechart.append("g")
             .call(d3.axisLeft(yScale).tickFormat(""));
-
-        transferSvgToCanvas(linechart_svg, palette, div)
 
         // append the palette
         let palette_results_div = div.append("div")
@@ -771,7 +734,7 @@
         }
 
         linechart_svg.on("click", function () {
-            linechart_svg.selectAll(".linechart")
+            linechart_svg.selectAll(".linechart-focus")
                 .attr("stroke", function () {
                     return d3.select(this).attr("item-color")
                 })
@@ -1264,7 +1227,7 @@
                     "color": {
                         "condition": { "param": "brush", "field": "weather" },
                         "field": "weather2",
-                        "title":"Weather",
+                        "title": "Weather",
                         "type": "nominal",
                         "scale": {
                             "domain": [
