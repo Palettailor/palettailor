@@ -17,19 +17,6 @@
         text-align: center;
     }
 
-    #canvasDiv {
-        position: relative;
-        width: 740px;
-        height: 540px;
-        display: inline-block;
-    }
-
-    #canvasDiv canvas,
-    #canvasDiv svg {
-        position: absolute;
-        left: 0;
-    }
-
     #matrix-div svg {
         font: 10px sans-serif;
         padding: 10px;
@@ -151,6 +138,15 @@
     #divBorder {
         border: 3px dashed #eee;
         margin-top: 5px;
+        /* width: 560px;
+        height: 560px; */
+    }
+
+    #divBorderOur {
+        border: 6px solid #ccc;
+        margin-top: 5px;
+        /* width: 560px;
+        height: 560px; */
     }
 </style>
 
@@ -168,8 +164,8 @@
 
     <div id="fig-1-div" class="tabcontent">
         <h1>Fig.1 for Synthetic data with different highlighting methods</h1>
-        <div id="fig-1-div-left" style="width: 50%;display: inline-block;"></div>
-        <div id="fig-1-div-right" style="width: 45%;display: inline-block;vertical-align:top;"></div>
+        <div id="fig-1-div-left" style="width: 65%;display: inline-block;"></div>
+        <div id="fig-1-div-right" style="width: 30%;display: inline-block;vertical-align:top;"></div>
     </div>
 
     <div id="fig-14-div" class="tabcontent">
@@ -177,39 +173,40 @@
     </div>
 
     <div id="fig-15-div" class="tabcontent">
-        <h1>Fig.15 for Mnist data with different highlighting methods</h1>
-        <div id="fig-15-div-left" style="width: 50%;display: inline-block;"></div>
-        <div id="fig-15-div-right" style="width: 45%;display: inline-block;vertical-align:top;"></div>
+        <h1>Fig.15 for <a
+            href="http://yann.lecun.com/exdb/mnist/"
+            target="_blank">Mnist data</a> with different highlighting methods</h1>
+        <div id="fig-15-div-left" style="width: 65%;display: inline-block;"></div>
+        <div id="fig-15-div-right" style="width: 30%;display: inline-block;vertical-align:top;"></div>
     </div>
 
     <div id="fig-16-div" class="tabcontent">
-        <h1>Fig.16 for Air Quality Data with Line Chart</h1>
+        <h1>Fig.16 for <a
+            href="https://archive.ics.uci.edu/ml/datasets/air+quality"
+            target="_blank">Air Quality Data</a> with Line Chart</h1>
     </div>
 
     <div id="matrix-div" class="tabcontent">
         <h1>Interactive Scatterplot Matrix (Dataset from <a
                 href="https://towardsdatascience.com/seaborn-pairplot-enhance-your-data-understanding-with-a-single-plot-bf2f44524b22"
                 target="_blank">Force 2020 Machine Learning competition</a>)</h1>
-        <div id="d3v4matrixDiv" style="display: inline-block;">
+
+        <div id="d3v4matrixDiv" style="display: inline-block;border: 3px dashed #eee;">
             <h3>
-                Refer to: <a href="https://bl.ocks.org/Fil/6d9de24b31cb870fed2e6178a120b17d" target="_blank">Scatterplot
-                    Matrix Brushing
-                    d3v4 Example</a> & <br>
-                <a href="https://vega.github.io/vega/examples/brushing-scatter-plots/" target="_blank">Vega Brushing
-                    Scatter Plots
-                    Example</a>
+                Tableau (default assignment) with  <a href="https://bl.ocks.org/Fil/6d9de24b31cb870fed2e6178a120b17d" target="_blank">D3 Example</a> &
+                <a href="https://vega.github.io/vega/examples/brushing-scatter-plots/" target="_blank">Vega Example</a>
             </h3>
 
         </div>
-        <div id="tableauHighlighterDiv" style="display: inline-block;">
+        <div id="tableauHighlighterDiv" style="display: inline-block;border: 3px dashed #eee;">
             <h3>
-                <a href="https://public.tableau.com/app/profile/neil.lord/viz/ParameterHighlight/Sheet1"
+                Tableau (optimal assignment) with <a href="https://public.tableau.com/app/profile/neil.lord/viz/ParameterHighlight/Sheet1"
                     target="_blank">Tableau
                     Highlighter</a>
             </h3>
 
         </div>
-        <div id="ourDiv" style="display: inline-block;">
+        <div id="ourDiv" style="display: inline-block;border: 6px solid #ccc;">
             <h3>
                 Our Context-preserving Highlighting Method
             </h3>
@@ -220,7 +217,7 @@
     <div id="multiview-div" class="tabcontent">
         <h1>Interactive Multi-View Displays From <a href="https://vega.github.io/vega-lite/examples/"
                 target="_blank">Vega-Lite Example Gallery</a></h1>
-        <div id="vegaLiteDiv" style="display: inline-block;">
+        <div id="vegaLiteDiv" style="display: inline-block;border: 3px dashed #eee;">
             <h3>
                 Refer to:
                 <a href="https://vega.github.io/vega-lite/examples/interactive_seattle_weather.html"
@@ -229,7 +226,7 @@
             <div id="vegaLiteDiv-render"></div>
 
         </div>
-        <div id="ourMultiViewDiv" style="display: inline-block;">
+        <div id="ourMultiViewDiv" style="display: inline-block;border: 6px solid #ccc;">
             <h3>
                 Our Context-preserving Highlighting Method
             </h3>
@@ -262,6 +259,8 @@
 </script>
 
 <script>
+    let screen_width = window.innerWidth,
+        screen_height = window.innerHeight
     //global variables:
     let svg_margin = {
         top: 20,
@@ -342,6 +341,7 @@
         yScale.domain(d3.extent(data, yValue));
 
         let div = d3.select("#" + divId).append("div").attr("id", "divBorder").style("display", "inline-block").style("margin-left", "10px")
+        if (title === "Our Context-preserving Highlighting") div.attr("id", "divBorderOur")
         div.append("h3").text(title)
         let scatterplot_svg = div.append("svg").attr("typeId", "scatter")
             .attr("width", SVGWIDTH).attr("height", SVGHEIGHT);
@@ -443,7 +443,8 @@
                 }).raise();
             })
 
-        scatterplot.call(brush).call(brush.move, [[152, 358], [425, 465]]);
+        // scatterplot.call(brush).call(brush.move, [[svg_width * 1 / 3, svg_height * 1 / 3], [svg_width * 3 / 4, svg_height * 3 / 4]]);
+        scatterplot.call(brush)//.call(brush.move, [[152, 358], [425, 465]]);
         // add the x Axis
         scatterplot.append("g")
             .attr("transform", "translate(0," + svg_height + ")")
@@ -525,6 +526,7 @@
         }));
 
         let div = d3.select("#" + divId).append("div").attr("id", "divBorder").style("display", "inline-block").style("margin-left", "10px")
+        if (title === "Our Context-preserving Highlighting") div.attr("id", "divBorderOur")
         div.append("h3").text(title)
 
         let linechart_svg = div.append("svg").attr("typeId", "line")
@@ -671,7 +673,7 @@
                 return palette[labelToClass[cValue(d)] + palette.length / 2];
             })
 
-        linechart.call(brush).call(brush.move, [[345, 10], [500, 335]]);
+        linechart.call(brush)//.call(brush.move, [[345, 10], [500, 335]]);
 
         linechart_svg.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
         // Add the X Axis
@@ -786,6 +788,13 @@
 
         // Fig.14
         bgcolor = d3.rgb(9, 38, 110)
+
+        used_palette = fig_1_palettailor.slice()
+        for (let i = 0; i < class_number; i++) {
+            used_palette[i + class_number] = used_palette[i]
+        }
+        drawInteractiveScatterplot(fig_1_data, "fig-14-div", used_palette, "Palettailor with Alpha Blending", labelToClass, 1)
+
         Tableau_10_palette_muted = Tableau_10_palette_blue
         tableau_10 = {}
         for (let i = 0; i < Tableau_10_palette.length; i++) {

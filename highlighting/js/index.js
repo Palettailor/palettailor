@@ -428,7 +428,7 @@ function updateSvg(palette, svg, classId) {
     }
 }
 
-function appendBarchart(used_palette) {
+function appendBarchart2(used_palette) {
     // let used_palette = doColorization();
     xScale.domain(Object.keys(labelToClass).map(function (d) {
         return d;
@@ -471,6 +471,16 @@ function appendBarchart(used_palette) {
             .attr("height", function (d) {
                 return svg_height - yScale(yValue(d));
             })
+            // .attr("x", function (d) {
+            //     return yScale(0);
+            // })
+            // .attr("width", function (d) { return yScale(yValue(d)) })
+            // .attr("y", function (d) {
+            //     return xScale(cValue(d));
+            // })
+            // .attr("height", function (d) {
+            //     return xScale.bandwidth();
+            // })
             .attr("rx", 10).attr("ry", 10)
             .attr("item-color", function (d) {
                 return used_palette[labelToClass[cValue(d)]];
@@ -499,8 +509,153 @@ function appendBarchart(used_palette) {
     }
     // return used_palette;
 }
+function appendBarchart(used_palette) {
+    // let used_palette = doColorization();
+    xScale.domain(Object.keys(labelToClass).map(function (d) {
+        return d;
+    }));
+    for (let s = 0; s < source_datasets.length; s++) {
+        yScale.domain([0, d3.max(source_datasets[s], yValue)]);
+        let barchart_svg = d3.select("#renderDiv").append("svg").attr("id", "renderSvg").attr("typeId", "bar")
+            .attr("width", SVGWIDTH).attr("height", SVGHEIGHT);
 
-function appendLinechart(used_palette) {
+        let barchart = barchart_svg.style("background-color", bgcolor)
+            .append("g")
+            .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")");
+
+        var brush = d3.brush()
+            .on("start", brushstart)
+            .on("brush", brushmove)
+            .on("end", brushend)
+            .extent([[0, 0], [svg_width, svg_height]]);
+        var brushCell;
+        // Clear the previously-active brush, if any.
+        function brushstart(p) {
+            // console.log("brush start");
+            if (brushCell !== this) {
+                d3.select(brushCell).call(brush.move, null);
+                brushCell = this;
+            }
+        }
+
+        var clip = barchart_svg.append("defs").append("svg:clipPath")
+            .attr("id", "clip")
+            .append("svg:rect")
+            .attr("width", svg_width)
+            .attr("height", svg_height)
+            .attr("x", 0)
+            .attr("y", 0);
+
+        var focus_chart = barchart_svg.append("g")
+            .attr("class", "focus")
+            .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")")
+            .attr("clip-path", "url(#clip)");
+
+        // Highlight the selected circles.
+        function brushmove(p) {
+            // console.log("brush move");
+            var e = d3.brushSelection(this);
+            let x, y, width, height
+            if (!e) {
+                x = 0
+                y = 0
+                width = svg_width
+                height = svg_height
+            } else {
+                x = e[0][0]
+                y = e[0][1]
+                width = e[1][0] - x
+                height = e[1][1] - y
+            }
+            clip.attr("width", width)
+                .attr("height", height)
+                .attr("x", x)
+                .attr("y", y);
+        }
+
+        // If the brush is empty, select all circles.
+        function brushend() {
+            // console.log("brush end");
+            var e = d3.brushSelection(this);
+            if (e === null) {
+                focus_chart.selectAll('.barchart-focus').attr("fill", function (d) {
+                    return d3.select(this).attr("item-color")
+                })
+                clip.attr("width", svg_width)
+                    .attr("height", svg_height)
+                    .attr("x", 0)
+                    .attr("y", 0);
+            }
+        }
+
+
+        // add the x Axis
+        barchart.append("g")
+            .attr("transform", "translate(0," + svg_height + ")")
+            .call(d3.axisBottom(xScale)); //.tickFormat("")
+
+        // add the y Axis
+        barchart.append("g")
+            .call(d3.axisLeft(yScale)); //.tickFormat("")
+
+        barchart.selectAll("bars")
+            .data(source_datasets[s])
+            .enter().append("rect")
+            .attr("class", "bars")
+            .attr("id", function (d) {
+                return "faint-class_" + labelToClass[cValue(d)];
+            })
+            .attr("fill", function (d) {
+                return used_palette[labelToClass[cValue(d)] + used_palette.length / 2];
+            })
+            .attr("x", function (d) {
+                return xScale(cValue(d));
+            })
+            .attr("width", xScale.bandwidth())
+            .attr("y", function (d) {
+                return yScale(yValue(d));
+            })
+            .attr("height", function (d) {
+                return svg_height - yScale(yValue(d));
+            })
+            .attr("rx", 10).attr("ry", 10)
+        focus_chart.selectAll("barchart-focus")
+            .data(source_datasets[s])
+            .enter().append("rect")
+            .attr("class", "barchart-focus")
+            .attr("id", function (d) {
+                return "class_" + labelToClass[cValue(d)];
+            })
+            .attr("fill", function (d) {
+                return used_palette[labelToClass[cValue(d)]];
+            })
+            .attr("x", function (d) {
+                return xScale(cValue(d));
+            })
+            .attr("width", xScale.bandwidth())
+            .attr("y", function (d) {
+                return yScale(yValue(d));
+            })
+            .attr("height", function (d) {
+                return svg_height - yScale(yValue(d));
+            })
+            .attr("rx", 10).attr("ry", 10)
+            .attr("item-color", function (d) {
+                return used_palette[labelToClass[cValue(d)]];
+            })
+            .attr("faint-color", function (d) {
+                return used_palette[labelToClass[cValue(d)] + used_palette.length / 2];
+            })
+        barchart_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[s]);
+
+
+        barchart.call(brush);
+        barchart_svg.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
+    }
+    // return used_palette;
+}
+
+function appendLinechart2(used_palette) {
     // let used_palette = doColorization();
     for (let s = 0; s < source_datasets.length; s++) {
         let linechart_svg = d3.select("#renderDiv").append("svg").attr("id", "renderSvg").attr("typeId", "line")
@@ -509,6 +664,71 @@ function appendLinechart(used_palette) {
         let linechart = linechart_svg.style("background-color", bgcolor)
             .append("g")
             .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")");
+
+
+        var brush = d3.brush()
+            .on("start", brushstart)
+            .on("brush", brushmove)
+            .on("end", brushend)
+            .extent([[0, 0], [svg_width, svg_height]]);
+        var brushCell;
+        // Clear the previously-active brush, if any.
+        function brushstart(p) {
+            // console.log("brush start");
+            if (brushCell !== this) {
+                d3.select(brushCell).call(brush.move, null);
+                brushCell = this;
+            }
+        }
+
+        // Highlight the selected circles.
+        function brushmove(p) {
+            // console.log("brush move");
+            var e = d3.brushSelection(this);
+
+            let linechart_source_data_tmp = [];
+            for (let line of linechart_source_data) {
+                linechart_source_data_tmp[labelToClass[line.label]] = { p: [], label: line.label }
+                for (let d of line.p) {
+                    if (e[0][0] > xMap(d) || xMap(d) > e[1][0]
+                        || e[0][1] > yMap(d) || yMap(d) > e[1][1]) {
+                        continue
+                    }
+                    linechart_source_data_tmp[labelToClass[line.label]].p.push(d)
+                }
+            }
+            // console.log(linechart_source_data, linechart_source_data_tmp);
+
+            linechart.selectAll('.linechart').attr("stroke", function (d) {
+                return d3.select(this).attr("faint-color")
+            })
+            // Add the selected path.
+            linechart.selectAll('.linechart-salient').remove()
+            linechart.selectAll('.linechart-salient')
+                .data(linechart_source_data_tmp).enter().append("path")
+                .attr("d", function (d) {
+                    return valueline(d.p);
+                })
+                .attr("class", "linechart-salient")
+                .attr("fill", "none")
+                .attr("stroke", function (d) {
+                    return used_palette[labelToClass[cValue(d)]];
+                })
+                .style("stroke-width", radius)
+            console.log(linechart.selectAll('.linechart-salient'));
+        }
+
+        // If the brush is empty, select all circles.
+        function brushend() {
+            // console.log("brush end");
+            var e = d3.brushSelection(this);
+            if (e === null) {
+                linechart.selectAll('.linechart-salient').remove()
+                linechart.selectAll('.linechart').attr("stroke", function (d) {
+                    return d3.select(this).attr("item-color")
+                })
+            }
+        }
 
         // Scale the range of the data
         xScale.domain(d3.extent(source_datasets[s], function (d) {
@@ -521,19 +741,45 @@ function appendLinechart(used_palette) {
             })
             .y(function (d) {
                 return yScale(d.y);
-            }).curve(d3.curveCatmullRom);
+            })//.curve(d3.curveCatmullRom);
 
         let linechart_source_data = [],
             tmp_keys = [],
             count = 0;
+        // for (let point of source_datasets[s]) {
+        //     if (tmp_keys[labelToClass[point.label]] == undefined) {
+        //         tmp_keys[labelToClass[point.label]] = count++;
+        //         linechart_source_data[tmp_keys[labelToClass[point.label]]] = { p: [], label: point.label };
+        //     }
+        //     linechart_source_data[tmp_keys[labelToClass[point.label]]].p.push({ x: point.x, y: point.y });
+        // }
         for (let point of source_datasets[s]) {
-            if (tmp_keys[labelToClass[point.label]] == undefined) {
-                tmp_keys[labelToClass[point.label]] = count++;
-                linechart_source_data[tmp_keys[labelToClass[point.label]]] = { p: [], label: point.label };
+            if (linechart_source_data[labelToClass[point.label]] == undefined) {
+                linechart_source_data[labelToClass[point.label]] = { p: [], label: point.label };
             }
-            linechart_source_data[tmp_keys[labelToClass[point.label]]].p.push({ x: point.x, y: point.y });
+            linechart_source_data[labelToClass[point.label]].p.push({ x: point.x, y: point.y });
         }
-
+        //interpolate line chart data
+        let interpolated_linechart_data = [];
+        let interpolated_points_step = 10;
+        for (let line of linechart_source_data) {
+            let line_path = line.p;
+            interpolated_linechart_data[labelToClass[line.label]] = { p: [], label: line.label };
+            for (let i = 0; i < line_path.length - 1; i++) {
+                let x_0 = line_path[i].x,
+                    x_1 = line_path[i + 1].x;
+                let y_0 = line_path[i].y,
+                    y_1 = line_path[i + 1].y;
+                let interpolated_points_num = Math.floor(Math.sqrt((xScale(x_1) - xScale(x_0)) * (xScale(x_1) - xScale(x_0)) + (yScale(y_1) - yScale(y_0)) * (yScale(y_1) - yScale(y_0))) / interpolated_points_step);
+                interpolated_points_num = (interpolated_points_num > 0) ? interpolated_points_num : 1;
+                for (let j = 0; j < interpolated_points_num; j++) {
+                    interpolated_linechart_data[labelToClass[line.label]].p.push({ label: line.label, x: (x_1 - x_0) * j / interpolated_points_num + x_0, y: (y_1 - y_0) * j / interpolated_points_num + y_0 });
+                }
+            }
+            interpolated_linechart_data[labelToClass[line.label]].p.push({ label: line.label, x: line_path[line_path.length - 1].x, y: line_path[line_path.length - 1].y });
+        }
+        linechart_source_data = interpolated_linechart_data
+        // console.log("interpolated_linechart_data", interpolated_linechart_data);
         // Add the valueline path.
         linechart.selectAll('path')
             .data(linechart_source_data).enter().append("path")
@@ -572,6 +818,7 @@ function appendLinechart(used_palette) {
             })
         // .on("click", appendClickEvent);
 
+        linechart.call(brush);
         // Add the X Axis
         linechart.append("g")
             .attr("transform", "translate(0," + svg_height + ")")
@@ -583,11 +830,163 @@ function appendLinechart(used_palette) {
 
         linechart_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[s]);
 
-        transferSvgToCanvas(linechart_svg, used_palette)
+        // transferSvgToCanvas(linechart_svg, used_palette)
+
+        linechart_svg.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
     }
     // return used_palette;
 }
 
+function appendLinechart(used_palette) {
+    // let used_palette = doColorization();
+    for (let s = 0; s < source_datasets.length; s++) {
+        let linechart_svg = d3.select("#renderDiv").append("svg").attr("id", "renderSvg").attr("typeId", "line")
+            .attr("width", SVGWIDTH).attr("height", SVGHEIGHT);
+
+        let linechart = linechart_svg.style("background-color", bgcolor)
+            .append("g")
+            .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")");
+
+        var brush = d3.brush()
+            .on("start", brushstart)
+            .on("brush", brushmove)
+            .on("end", brushend)
+            .extent([[0, 0], [svg_width, svg_height]]);
+        var brushCell;
+        // Clear the previously-active brush, if any.
+        function brushstart(p) {
+            // console.log("brush start");
+            if (brushCell !== this) {
+                d3.select(brushCell).call(brush.move, null);
+                brushCell = this;
+            }
+        }
+
+        var clip = linechart_svg.append("defs").append("svg:clipPath")
+            .attr("id", "clip")
+            .append("svg:rect")
+            .attr("width", svg_width)
+            .attr("height", svg_height)
+            .attr("x", 0)
+            .attr("y", 0);
+
+        var focus_chart = linechart_svg.append("g")
+            .attr("class", "focus")
+            .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")")
+            .attr("clip-path", "url(#clip)");
+
+        // Highlight the selected circles.
+        function brushmove(p) {
+            // console.log("brush move");
+            var e = d3.brushSelection(this);
+            let x, y, width, height
+            if (!e) {
+                x = 0
+                y = 0
+                width = svg_width
+                height = svg_height
+            } else {
+                x = e[0][0]
+                y = e[0][1]
+                width = e[1][0] - x
+                height = e[1][1] - y
+            }
+            clip.attr("width", width)
+                .attr("height", height)
+                .attr("x", x)
+                .attr("y", y);
+        }
+
+        // If the brush is empty, select all circles.
+        function brushend() {
+            // console.log("brush end");
+            var e = d3.brushSelection(this);
+            if (e === null) {
+                focus_chart.selectAll('.linechart-focus').attr("stroke", function (d) {
+                    return d3.select(this).attr("item-color")
+                })
+                clip.attr("width", svg_width)
+                    .attr("height", svg_height)
+                    .attr("x", 0)
+                    .attr("y", 0);
+            }
+        }
+
+        // Scale the range of the data
+        xScale.domain(d3.extent(source_datasets[s], function (d) {
+            return d.x;
+        }));
+        // define the line
+        let valueline = d3.line()
+            .x(function (d) {
+                return xScale(d.x);
+            })
+            .y(function (d) {
+                return yScale(d.y);
+            }).curve(d3.curveCatmullRom);
+
+        let linechart_source_data = []
+        for (let point of source_datasets[s]) {
+            if (linechart_source_data[labelToClass[point.label]] == undefined) {
+                linechart_source_data[labelToClass[point.label]] = { p: [], label: point.label };
+            }
+            linechart_source_data[labelToClass[point.label]].p.push({ x: point.x, y: point.y });
+        }
+
+        // Add the valueline path.
+        linechart.selectAll('.linechart')
+            .data(linechart_source_data).enter().append("path")
+            .attr("d", function (d) {
+                return valueline(d.p);
+            })
+            .attr("class", "linechart")
+            .attr("id", function (d) {
+                return "faint-class_" + labelToClass[cValue(d)];
+            })
+            .attr("fill", "none")
+            .attr("stroke", function (d) {
+                return used_palette[labelToClass[cValue(d)] + used_palette.length / 2];
+            })
+            .style("stroke-width", radius)
+        focus_chart.selectAll('.linechart-focus')
+            .data(linechart_source_data).enter().append("path")
+            .attr("d", function (d) {
+                return valueline(d.p);
+            })
+            .attr("class", "linechart-focus")
+            .attr("id", function (d) {
+                return "class_" + labelToClass[cValue(d)];
+            })
+            .attr("fill", "none")
+            .attr("stroke", function (d) {
+                return used_palette[labelToClass[cValue(d)]];
+            })
+            .style("stroke-width", radius)
+            .attr("item-color", function (d) {
+                return used_palette[labelToClass[cValue(d)]];
+            })
+            .attr("faint-color", function (d) {
+                return used_palette[labelToClass[cValue(d)] + used_palette.length / 2];
+            })
+
+        linechart.call(brush);
+        // Add the X Axis
+        linechart.append("g")
+            .attr("transform", "translate(0," + svg_height + ")")
+            .call(d3.axisBottom(xScale)); //.tickFormat("")
+
+        // Add the Y Axis
+        linechart.append("g")
+            .call(d3.axisLeft(yScale)); //.tickFormat("")
+
+        linechart_svg.append("text").attr("x", 0).attr("y", 20).text(source_datasets_names[s]);
+
+        // transferSvgToCanvas(linechart_svg, used_palette)
+
+        linechart_svg.select(".selection").style("fill-opacity", 0).style("stroke", "#ccc").style("stroke-width", "4")
+    }
+    // return used_palette;
+}
 /**
  * https://bl.ocks.org/mbostock/0d20834e3d5a46138752f86b9b79727e
  * @param {*} svg 
@@ -894,80 +1293,42 @@ function lockThisRect(item) {
     let choosed_id = +d3.select(item).attr("classId")
     if (d3.select("#icon_lock-" + choosed_id).attr("class") === "icon_box-empty") {
         d3.select("#icon_lock-" + choosed_id).attr("class", "icon_box-checked")
-        // updateSvg(palette, d3.select("#renderSvg"), choosed_id)
-        // d3.select("#renderDiv").selectAll("#class_" + choosed_id).attr("fill", function (d) {
-        //     return d3.select(this).attr("item-color")
-        // });
-        for (let i = 0; i < class_number; i++) {
-            if (choosed_id != i && d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
-                d3.select("#renderDiv").selectAll("#class_" + i)
-                    .attr("fill", function (d) {
-                        if (typeId != "line")
-                            return d3.select(this).attr("faint-color")
-                        else
-                            return "none"
-                    })
-                    .attr("stroke", function () {
-                        if (typeId == "line")
-                            return d3.select(this).attr("faint-color")
-                        else
-                            return "none"
-                    })
-            else {
-                d3.select("#renderDiv").selectAll("#class_" + i)
-                    .attr("fill", function (d) {
-                        if (typeId != "line")
-                            return d3.select(this).attr("item-color")
-                        else
-                            return "none"
-                    })
-                    .attr("stroke", function () {
-                        if (typeId == "line")
-                            return d3.select(this).attr("item-color")
-                        else
-                            return "none"
-                    })
-                    .raise();
-            }
-
-        }
     }
     else {
         d3.select("#icon_lock-" + choosed_id).attr("class", "icon_box-empty")
-        // updateSvg(palette, d3.select("#renderSvg"), -1)
-        for (let i = 0; i < class_number; i++) {
-            if (d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
-                d3.select("#renderDiv").selectAll("#class_" + i)
-                    .attr("fill", function (d) {
-                        if (typeId != "line")
-                            return d3.select(this).attr("faint-color")
-                        else
-                            return "none"
-                    })
-                    .attr("stroke", function () {
-                        if (typeId == "line")
-                            return d3.select(this).attr("faint-color")
-                        else
-                            return "none"
-                    })
-            else {
-                d3.select("#renderDiv").selectAll("#class_" + i)
-                    .attr("fill", function (d) {
-                        if (typeId != "line")
-                            return d3.select(this).attr("item-color")
-                        else
-                            return "none"
-                    })
-                    .attr("stroke", function () {
-                        if (typeId == "line")
-                            return d3.select(this).attr("item-color")
-                        else
-                            return "none"
-                    })
-                    .raise(); // https://stackoverflow.com/questions/24045673/reorder-elements-of-svg-z-index-in-d3-js
-            }
-
+    }
+    for (let i = 0; i < class_number; i++) {
+        if (d3.select("#tfInfoLabel").select("#icon_lock-" + i).attr("class") != "icon_box-checked")
+            d3.select("#renderDiv").selectAll("#class_" + i)
+                .attr("fill", function (d) {
+                    if (typeId != "line")
+                        return d3.select(this).attr("faint-color")
+                    else
+                        return "none"
+                })
+                .attr("stroke", function () {
+                    if (typeId == "line")
+                        return d3.select(this).attr("faint-color")
+                    else
+                        return "none"
+                })
+        else {
+            d3.select("#renderDiv").selectAll("#class_" + i)
+                .attr("fill", function (d) {
+                    if (typeId != "line")
+                        return d3.select(this).attr("item-color")
+                    else
+                        return "none"
+                })
+                .attr("stroke", function () {
+                    if (typeId == "line")
+                        return d3.select(this).attr("item-color")
+                    else
+                        return "none"
+                })
+                .raise(); // https://stackoverflow.com/questions/24045673/reorder-elements-of-svg-z-index-in-d3-js
         }
+
     }
 }
 
