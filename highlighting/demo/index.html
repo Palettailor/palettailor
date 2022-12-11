@@ -17,6 +17,10 @@
         text-align: center;
     }
 
+    /* svg {
+        transform: scale(0.5, 0.5);
+    } */
+
     #matrix-div svg {
         font: 10px sans-serif;
         padding: 10px;
@@ -176,8 +180,9 @@
     <div id="fig-15-div" class="tabcontent">
         <h1>Fig.15 for <a href="http://yann.lecun.com/exdb/mnist/" target="_blank">Mnist data</a> with different
             highlighting methods</h1>
-        <div id="fig-15-div-left" style="width: 65%;display: inline-block;"></div>
-        <div id="fig-15-div-right" style="width: 30%;display: inline-block;vertical-align:top;"></div>
+        <div id="fig-15-div-left" style="width: 65%;display: inline-block;height: 1400px;"></div>
+        <div id="fig-15-div-right"
+            style="width: 30%;display: inline-block;vertical-align:top;margin-top: 200px;height: 1400px;"></div>
     </div>
 
     <div id="fig-16-div" class="tabcontent">
@@ -258,10 +263,59 @@
         evt.currentTarget.className += " active";
     }
 </script>
+<!-- 
+<script>
+    function resize() {
+        // document.body.style.width = '1920px';
+        // document.body.style.height = '1080px';
+        console.log("resize");
+
+        var winHeight = document.documentElement.clientHeight; //浏览器的高度
+        var winWidth = document.documentElement.clientWidth; //浏览器的宽度
+        console.log(winWidth, winHeight, window.screen.width, window.screen.height);
+        var sw = 3072 / 3840
+        var sh = 1920 / 2160
+        document.body.style.transition = 'all 0.5s'
+        document.body.style.transformOrigin = 'left top'
+        document.body.style.transform = `scale(${sw},${sw})`
+        document.body.style.WebkitTransform = `scale(${sw},${sw})`
+    }
+
+    window.onload = function () {
+        console.log("in");
+        resize()
+    };
+    //防抖，避免resize占用过多资源
+    (function () {
+        var throttle = function (type, name, obj) {
+            obj = obj || window;
+            var running = false;
+            var func = function () {
+                if (running) {
+                    return;
+                }
+                running = true;
+                requestAnimationFrame(function () {
+                    obj.dispatchEvent(new CustomEvent(name));
+                    running = false;
+                });
+            };
+            obj.addEventListener(type, func);
+        };
+
+        throttle("resize", "optimizedResize");
+    })();
+    // optimizedResize
+    window.addEventListener("optimizedResize", resize);
+</script> -->
 
 <script>
+
     let screen_width = window.innerWidth,
         screen_height = window.innerHeight
+    let scale_size = window.devicePixelRatio
+    document.body.style.zoom = 1 / 1.5
+    console.log("scale size", scale_size);
     //global variables:
     let svg_margin = {
         top: 20,
@@ -767,11 +821,11 @@
             width = svg_width,
             height = 360 - margin.top - margin.bottom;
         // append the svg object to the body of the page
-        var svg = div
+        var bar_svg = div
             .append("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
-            .append("g")
+        let svg = bar_svg.append("g")
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
 
@@ -835,26 +889,27 @@
                             .attr("stroke", function () {
                                 return d3.select(this).attr("faint-color")
                             })
-                        svg.selectAll("#class_" + j)
+                        bar_svg.selectAll("#class_" + j)
                             .attr("fill", function () {
                                 return d3.select(this).attr("faint-color")
                             })
                     }
                 }
+                // console.log("click the bar");
                 event.stopPropagation();
             })
 
-        // svg.on("click", function () {
-        //     console.log("inn");
-        //     linechart_svg.selectAll(".linechart-focus")
-        //         .attr("stroke", function () {
-        //             return d3.select(this).attr("item-color")
-        //         })
-        //     svg.selectAll(".barchart-focus")
-        //         .attr("fill", function () {
-        //             return d3.select(this).attr("item-color")
-        //         })
-        // });
+        bar_svg.on("click", function () {
+            // console.log("svg");
+            linechart_svg.selectAll(".linechart-focus")
+                .attr("stroke", function () {
+                    return d3.select(this).attr("item-color")
+                })
+            bar_svg.selectAll(".barchart-focus")
+                .attr("fill", function () {
+                    return d3.select(this).attr("item-color")
+                })
+        });
     }
 </script>
 
@@ -884,6 +939,8 @@
             used_palette[i + class_number] = d3.hsl(hsl.h, hsl.s, 0.9)
         }
         drawInteractiveScatterplot(fig_1_data, "fig-1-div-left", used_palette, "Palettailor with Lightness Adjustment", labelToClass)
+
+        d3.select("#fig-1-div-left").append("br")
 
         used_palette = fig_1_palettailor.slice()
         for (let i = 0; i < class_number; i++) {
@@ -961,6 +1018,7 @@
         }
         drawInteractiveScatterplot(fig_15_data, "fig-15-div-left", used_palette, "Palettailor with Lightness Adjustment", labelToClass)
 
+        d3.select("#fig-15-div-left").append("br")
         used_palette = fig_15_palettailor.slice()
         for (let i = 0; i < class_number; i++) {
             used_palette[i + class_number] = used_palette[i]
