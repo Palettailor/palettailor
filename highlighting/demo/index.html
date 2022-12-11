@@ -159,9 +159,9 @@
         <button class="tablinks" onclick="openTab(event, 'fig-1-div')">Fig.1</button>
         <button class="tablinks" onclick="openTab(event, 'fig-14-div')">Fig.14</button>
         <button class="tablinks" onclick="openTab(event, 'fig-15-div')">Fig.15</button>
-        <button class="tablinks" onclick="openTab(event, 'fig-16-div')">Line Chart</button>
+        <button class="tablinks" onclick="openTab(event, 'fig-16-div')">Multi-view</button>
         <button class="tablinks" onclick="openTab(event, 'matrix-div')">Scatterplot Matrix</button>
-        <button class="tablinks" onclick="openTab(event, 'multiview-div')">Multi-view</button>
+        <!-- <button class="tablinks" onclick="openTab(event, 'multiview-div')">Multi-view</button> -->
         <h3>For each example, we provide both legend selection and brushing selection. You can click the legend to
             select a group of colors or brushing the interest points. </h3>
     </div>
@@ -187,7 +187,7 @@
 
     <div id="fig-16-div" class="tabcontent">
         <h1>Fig.16 for <a href="https://archive.ics.uci.edu/ml/datasets/air+quality" target="_blank">Air Quality
-                Data</a> with Line Chart</h1>
+                Data</a> with Multi-View Displays</h1>
     </div>
 
     <div id="matrix-div" class="tabcontent">
@@ -219,7 +219,7 @@
 
         </div>
     </div>
-
+    <!-- 
     <div id="multiview-div" class="tabcontent">
         <h1>Interactive Multi-View Displays From <a href="https://vega.github.io/vega-lite/examples/"
                 target="_blank">Vega-Lite Example Gallery</a></h1>
@@ -238,7 +238,7 @@
             </h3>
             <div id="ourMultiViewDiv-render"></div>
         </div>
-    </div>
+    </div> -->
 </body>
 
 <script>
@@ -314,7 +314,8 @@
     let screen_width = window.innerWidth,
         screen_height = window.innerHeight
     let scale_size = window.devicePixelRatio
-    document.body.style.zoom = 1 / 1.5
+    console.log(document.body.style.zoom);
+    // document.body.style.zoom = 1 / scale_size
     console.log("scale size", scale_size);
     //global variables:
     let svg_margin = {
@@ -602,34 +603,30 @@
                         d3.select(this)
                             .style("border", "0px solid #444");
                     }
-                    if (!isOpacity)
-                        for (let j = 0; j < palette_size; j++) {
-                            if (!(+palette_results_div.select("#rect-" + j).attr("isHighlighted"))) {
-                                linechart_svg.selectAll("#class_" + j)
-                                    .attr("stroke", function () {
-                                        return palette[j + palette_size];
-                                    })
-                            }
-                            else {
-                                linechart_svg.selectAll("#class_" + j)
-                                    .attr("stroke", function () {
-                                        return palette[j];
-                                    })
-                                    .raise();
-                            }
+                    for (let j = 0; j < palette_size; j++) {
+                        if ((+palette_results_div.select("#rect-" + j).attr("isHighlighted"))) {
+                            linechart_svg.selectAll("#class_" + j)
+                                .attr("stroke", function () {
+                                    return d3.select(this).attr("item-color")
+                                })
+                                .raise();
+                            bar_svg.selectAll("#class_" + j)
+                                .attr("fill", function () {
+                                    return d3.select(this).attr("item-color")
+                                })
+                                .raise();
                         }
-                    else {
-                        for (let j = 0; j < palette_size; j++) {
-                            if (!(+palette_results_div.select("#rect-" + j).attr("isHighlighted"))) {
-                                linechart_svg.selectAll("#class_" + j)
-                                    .style("opacity", 0.2)
-                            }
-                            else {
-                                linechart_svg.selectAll("#class_" + j)
-                                    .style("opacity", 1)
-                                    .raise();
-                            }
+                        else {
+                            linechart_svg.selectAll("#class_" + j)
+                                .attr("stroke", function () {
+                                    return d3.select(this).attr("faint-color")
+                                })
+                            bar_svg.selectAll("#class_" + j)
+                                .attr("fill", function () {
+                                    return d3.select(this).attr("faint-color")
+                                })
                         }
+
                     }
                 })
         }
@@ -657,6 +654,9 @@
             }
         }
 
+        /*
+        * https://bl.ocks.org/EfratVil/92f894ac0ba265192411e73f633a3e2f
+        */
         let clip_id = "clip_" + new Date().getTime()
         var clip = linechart_svg.append("defs").append("svg:clipPath")
             .attr("id", clip_id)
@@ -691,6 +691,31 @@
                 .attr("height", height)
                 .attr("x", x)
                 .attr("y", y);
+
+            // update the bar chart
+            let bar_data_tmp = {}
+            for (let d of data) {
+                if (!bar_data_tmp[d.label]) bar_data_tmp[d.label] = 0
+                if (d.x > xScale.invert(e[0][0]) && d.x < xScale.invert(e[1][0]) && d.y > yScale.invert(e[1][1]) && d.y < yScale.invert(e[0][1]))
+                    bar_data_tmp[d.label] += d.y
+            }
+            let bar_arr_tmp = []
+            for (let d in bar_data_tmp) {
+                bar_arr_tmp.push({
+                    x: d,
+                    y: bar_data_tmp[d],
+                    label: d
+                })
+            }
+            bar_scaleX.domain([0, d3.max(bar_arr_tmp, yValue)])
+            bar_svg.select(".axis--x").call(d3.axisBottom(bar_scaleX));
+            for (let j = 0; j < palette_size; j++) {
+                bar_svg.selectAll(".barchart-focus#class_" + j)
+                    .attr("fill", function () {
+                        return d3.select(this).attr("item-color")
+                    })
+                    .attr("width", function (d) { return bar_scaleX(bar_arr_tmp[j].y); })
+            }
         }
 
         // If the brush is empty, select all circles.
@@ -705,6 +730,29 @@
                     .attr("height", svg_height)
                     .attr("x", 0)
                     .attr("y", 0);
+                // update the bar chart
+                let bar_data_tmp = {}
+                for (let d of data) {
+                    if (!bar_data_tmp[d.label]) bar_data_tmp[d.label] = 0
+                    bar_data_tmp[d.label] += d.y
+                }
+                let bar_arr_tmp = []
+                for (let d in bar_data_tmp) {
+                    bar_arr_tmp.push({
+                        x: d,
+                        y: bar_data_tmp[d],
+                        label: d
+                    })
+                }
+                bar_scaleX.domain([0, d3.max(bar_arr_tmp, yValue)])
+                bar_svg.select(".axis--x").call(d3.axisBottom(bar_scaleX));
+                for (let j = 0; j < palette_size; j++) {
+                    bar_svg.selectAll(".barchart-focus#class_" + j)
+                        .attr("fill", function () {
+                            return d3.select(this).attr("item-color")
+                        })
+                        .attr("width", function (d) { return bar_scaleX(bar_arr_tmp[j].y); })
+                }
             }
         }
 
@@ -830,12 +878,13 @@
                 "translate(" + margin.left + "," + margin.top + ")");
 
         // Add X axis
-        var x = d3.scaleLinear()
+        var bar_scaleX = d3.scaleLinear()
             .domain([0, d3.max(bar_arr, yValue)])
             .range([0, width]);
         svg.append("g")
+            .attr("class", "axis axis--x")
             .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(x))
+            .call(d3.axisBottom(bar_scaleX))
             .selectAll("text")
             // .attr("transform", "translate(-10,0)rotate(-45)")
             .style("text-anchor", "end");
@@ -857,9 +906,9 @@
             .attr("id", function (d) {
                 return "class_" + labelToClass[cValue(d)];
             })
-            .attr("x", x(0))
+            .attr("x", bar_scaleX(0))
             .attr("y", function (d) { return y(d.x); })
-            .attr("width", function (d) { return x(d.y); })
+            .attr("width", function (d) { return bar_scaleX(d.y); })
             .attr("height", y.bandwidth())
             .attr("fill", function (d) {
                 return palette[labelToClass[cValue(d)]];
@@ -878,7 +927,7 @@
                                 return d3.select(this).attr("item-color")
                             })
                             .raise();
-                        svg.selectAll("#class_" + j)
+                        bar_svg.selectAll("#class_" + j)
                             .attr("fill", function () {
                                 return d3.select(this).attr("item-color")
                             })
@@ -1394,7 +1443,7 @@
     }
 
     // Embed the visualization in the container with id `vis`
-    vegaEmbed('#vegaLiteDiv-render', vlSpec);
+    // vegaEmbed('#vegaLiteDiv-render', vlSpec);
 
     used_palette = ["#ffd341", "#1083d5", "#21db7c", "#ff91ff", "#b05500", "#fff5d5", "#c5e4fa", "#dbf9ea", "#ffe5ff", "#ffd7b2"]
     let vlSpec_ours = {
@@ -1469,5 +1518,5 @@
             }
         ]
     }
-    vegaEmbed('#ourMultiViewDiv-render', vlSpec_ours);
+    // vegaEmbed('#ourMultiViewDiv-render', vlSpec_ours);
 </script>
