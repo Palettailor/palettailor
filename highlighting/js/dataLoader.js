@@ -171,6 +171,100 @@ function loadScatterplotExample() {
         });
     }
 
+    if (false) {
+        d3.csv("./data/seattle-weather-used.csv", function (error, seattle) {
+            if (error) throw error;
+            console.log(seattle);
+            let source_data = []
+            let labelSet = new Set();
+            let getLabel = function (d) {
+                return d.weather
+            }
+
+            var monthDecimalFormat = d3.timeFormat("%m"), dayDecimalFormat = d3.timeFormat("%d")
+            for (let d of seattle) {
+                source_data.push({
+                    x: (+monthDecimalFormat(new Date(d["date"])) - 1) * 31 + (+dayDecimalFormat(new Date(d["date"]))),
+                    y: +d['temp_max'],
+                    label: getLabel(d)
+                })
+                labelSet.add(getLabel(d))
+            }
+            console.log(source_data);
+            source_datasets.push(source_data);
+            source_datasets_names.push("seattle.csv");
+            labelToClass = getLabelToClassMapping(labelSet);
+            console.log(labelToClass);
+            labelToClass["sun"] = 0
+            labelToClass["fog"] = 1
+            labelToClass["drizzle"] = 2
+            labelToClass["rain"] = 3
+            labelToClass["snow"] = 4
+
+            xScale = d3.scaleTime().range([0, svg_width]); // value -> display
+            xMap = function (d) {
+                return xScale(xValue(d));
+            }; // data -> display
+            xAxis = d3.axisBottom().scale(xScale).tickPadding(5)
+                .tickSize(-svg_height);
+            yScale = d3.scaleLinear().range([svg_height, 0]); // value -> display
+            yMap = function (d) {
+                return yScale(yValue(d));
+            }; // data -> display
+            yAxis = d3.axisLeft().scale(yScale).ticks(5)
+                .tickPadding(15)
+                .tickSize(-svg_width);
+
+            // using same scale
+            let dataset = [];
+            for (let i = 0; i < source_datasets.length; i++) {
+                dataset = dataset.concat(source_datasets[i]);
+            }
+            xScale.domain(d3.extent(dataset, xValue)).nice();
+            yScale.domain(d3.extent(dataset, yValue)).nice();
+
+            scaled_datasets = []
+            for (let i = 0; i < source_datasets.length; i++) {
+                // // using different scale
+                // xScale.domain(d3.extent(source_datasets[i], xValue));
+                // yScale.domain(d3.extent(source_datasets[i], yValue));
+
+                let tmp = []
+                for (let d of source_datasets[i]) {
+                    tmp.push({
+                        x: xMap(d),
+                        y: yMap(d),
+                        label: d.label
+                    })
+                }
+                console.log(tmp);
+                scaled_datasets.push(tmp)
+            }
+
+            // get cluster number for each class
+            let cluster_num = Object.keys(labelToClass).length;
+            cluster_nums = new Array(source_datasets.length)
+            for (let i = 0; i < source_datasets.length; i++) {
+                cluster_nums[i] = new Array(cluster_num).fill(0)
+                var clusters = SplitDataByClass(source_datasets[i], labelToClass)
+                for (let key in clusters) {
+                    if (clusters[key]) {
+                        cluster_nums[i][key] = clusters[key].length
+                    }
+                }
+            }
+
+            calculateAlphaShapeDistance(scaled_datasets, [
+                [0, 0],
+                [svg_width, svg_height]
+            ])
+
+            d3.select(".operationDiv").style('pointer-events', "auto");
+            document.querySelector('#loading').classList.add('hide');
+            renderResult();
+        });
+    }
+
 }
 
 function loadLinechartExample() {
@@ -191,30 +285,139 @@ function loadLinechartExample() {
         d3.select(".operationDiv").style('pointer-events', "auto");
         document.querySelector('#loading').classList.add('hide');
         renderResult();
-        alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
+        // alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
     });
 }
 
 function loadBarchartExample() {
     source_datasets = [];
     source_datasets_names = [];
-    d3.text("../data/barchart.csv", function (error, text) {
-        if (error) throw error;
-        DATATYPE = "BARCHART";
-        source_datasets_names.push("barchart");
-        let labelSet = new Set();
-        if (!loadData(text, labelSet, "barchart")) {
-            console.log("Loading file problem.");
-            return
-        }
+    if (true)
+        d3.text("../data/barchart.csv", function (error, text) {
+            if (error) throw error;
+            DATATYPE = "BARCHART";
+            source_datasets_names.push("barchart");
+            let labelSet = new Set();
+            if (!loadData(text, labelSet, "barchart")) {
+                console.log("Loading file problem.");
+                return
+            }
 
-        labelToClass = getLabelToClassMapping(labelSet);
-        processBarData(source_datasets);
-        d3.select(".operationDiv").style('pointer-events', "auto");
-        document.querySelector('#loading').classList.add('hide');
-        renderResult();
-        alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
-    });
+            labelToClass = getLabelToClassMapping(labelSet);
+            processBarData(source_datasets);
+            d3.select(".operationDiv").style('pointer-events', "auto");
+            document.querySelector('#loading').classList.add('hide');
+            renderResult();
+            // alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
+        });
+
+    if (false) {
+        // AirQualityUCI
+        d3.text("./data/AirQualityUCI.csv", function (error, text) {
+            if (error) throw error;
+            DATATYPE = "BARCHART";
+            source_datasets_names.push("AirQualityUCI");
+            let labelSet = new Set();
+            let bar_data = {}
+
+            d3.select("#warn_div").text("Simulated Annealing can not always get the best result(due to limited time and randomness), if the current result is not satisfied, please run it again.")
+            document.querySelector('#loading').classList.remove('hide');
+            //parse pure text to data, and cast string to number
+            let source_data = d3.csvParseRows(text, function (d) {
+                if (!isNaN(d[0]) && !isNaN(d[1])) {
+                    return d; //.map(Number);
+                }
+            }).map(function (d) { // change the array to an object, use the first two feature as the position
+                //source data
+                var row = {};
+                row.label = d[2];
+                if (!bar_data[row.label]) bar_data[row.label] = 0
+                labelSet.add(row.label);
+                row.x = +d[0];
+                row.y = +d[1];
+                bar_data[row.label] += row.y
+                return row;
+            });
+            console.log("bar_data", bar_data);
+            // console.log("label set:", labelSet);
+            if (labelSet.size > 100) {
+                alert("Please load the data with right format.");
+                document.querySelector('#loading').classList.add('hide');
+                return false;
+            }
+            source_datasets_names.push("AirQualityUCI");
+            data_changed_sign = true;
+            labelToClass = getLabelToClassMapping(labelSet);
+
+            let data = []
+            for (let d in bar_data) {
+                data.push({
+                    x: d,
+                    y: bar_data[d],
+                    label: d
+                })
+            }
+            drawHorizontalBarplot(data)
+
+            source_datasets.push(data);
+            processBarData(source_datasets);
+            d3.select(".operationDiv").style('pointer-events', "auto");
+            document.querySelector('#loading').classList.add('hide');
+            renderResult();
+            alert("This is a feature in test! We provide you with an interactive canvas for brushing selection.")
+        });
+
+
+    }
+}
+
+function drawHorizontalBarplot(data) {
+    // set the dimensions and margins of the graph
+    var margin = { top: 20, right: 30, bottom: 40, left: 90 },
+        width = 820 - margin.left - margin.right,
+        height = 560 - margin.top - margin.bottom;
+    used_palette = ["#995f28", "#59a34b", "#da45e2", "#f8b91c", "#4abdff", "#f2dfcd", "#d8ebd4", "#f4c9f6", "#fdecc2", "#c0e8ff"]
+    // append the svg object to the body of the page
+    var svg = d3.select("#renderDiv")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // Add X axis
+    var x = d3.scaleLinear()
+        .domain([0, d3.max(data, yValue)])
+        .range([0, width]);
+    svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        // .attr("transform", "translate(-10,0)rotate(-45)")
+        .style("text-anchor", "end");
+
+    // Y axis
+    var y = d3.scaleBand()
+        .range([0, height])
+        .domain(data.map(function (d) { return d.x; }))
+        .padding(.1);
+    svg.append("g")
+        .call(d3.axisLeft(y))
+
+    //Bars
+    svg.selectAll("myRect")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("x", x(0))
+        .attr("y", function (d) { return y(d.x); })
+        .attr("width", function (d) { return x(d.y); })
+        .attr("height", y.bandwidth())
+        .attr("fill", function (d) {
+            if (cValue(d) != "PT08.S3(NOx)") return used_palette[labelToClass[cValue(d)] + 5]
+            return used_palette[labelToClass[cValue(d)]];
+        })
 }
 
 //open file dialog to get the file name
@@ -361,12 +564,16 @@ function processScatterData(datasets) {
 }
 
 function processBarData(datasets) {
+
     // set the ranges
     xScale = d3.scaleBand()
         .range([0, svg_width])
         .padding(0.1);
     yScale = d3.scaleLinear()
         .range([svg_height, 0]);
+
+    // yScale = d3.scaleLinear()
+    //     .range([0, svg_height])
 
     let dataset = [];
     for (let i = 0; i < datasets.length; i++) {

@@ -88,7 +88,7 @@ function doColorization() {
         console.log(id2, dscores[id2]);
         appendScatterplot(dscores[id2][3])
     }
-    // used_palette = mulv
+    // used_palette = ["#995f28", "#59a34b", "#da45e2", "#f8b91c", "#4abdff", "#f2dfcd", "#d8ebd4", "#f4c9f6", "#fdecc2", "#c0e8ff"]
     // show the salient and faint palettes
     if (false) {
         // used_palette = case1

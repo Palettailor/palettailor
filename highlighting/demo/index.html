@@ -263,51 +263,6 @@
         evt.currentTarget.className += " active";
     }
 </script>
-<!-- 
-<script>
-    function resize() {
-        // document.body.style.width = '1920px';
-        // document.body.style.height = '1080px';
-        console.log("resize");
-
-        var winHeight = document.documentElement.clientHeight; //浏览器的高度
-        var winWidth = document.documentElement.clientWidth; //浏览器的宽度
-        console.log(winWidth, winHeight, window.screen.width, window.screen.height);
-        var sw = 3072 / 3840
-        var sh = 1920 / 2160
-        document.body.style.transition = 'all 0.5s'
-        document.body.style.transformOrigin = 'left top'
-        document.body.style.transform = `scale(${sw},${sw})`
-        document.body.style.WebkitTransform = `scale(${sw},${sw})`
-    }
-
-    window.onload = function () {
-        console.log("in");
-        resize()
-    };
-    //防抖，避免resize占用过多资源
-    (function () {
-        var throttle = function (type, name, obj) {
-            obj = obj || window;
-            var running = false;
-            var func = function () {
-                if (running) {
-                    return;
-                }
-                running = true;
-                requestAnimationFrame(function () {
-                    obj.dispatchEvent(new CustomEvent(name));
-                    running = false;
-                });
-            };
-            obj.addEventListener(type, func);
-        };
-
-        throttle("resize", "optimizedResize");
-    })();
-    // optimizedResize
-    window.addEventListener("optimizedResize", resize);
-</script> -->
 
 <script>
 
@@ -315,7 +270,7 @@
         screen_height = window.innerHeight
     let scale_size = window.devicePixelRatio
     console.log(document.body.style.zoom);
-    // document.body.style.zoom = 1 / scale_size
+    document.body.style.zoom = 1 / scale_size
     console.log("scale size", scale_size);
     //global variables:
     let svg_margin = {
