@@ -252,11 +252,9 @@ function getPaletteScore(p, sign = false) {
     name_difference /= class_number * (class_number - 1);
     name_consistency /= class_number
 
-    // if (DATATYPE === "LINECHART") {
-    //     background_contrast *= 10
-    // } else {
-    //     background_contrast *= 4
-    // }
+    if (DATATYPE === "LINECHART") {
+        background_contrast *= 5
+    }
     let palette_score = score_importance_weight[0] * local_contrast + score_importance_weight[1] * background_contrast + score_importance_weight[2] * name_difference * 2 - score_importance_weight[3] * name_consistency * 0.25 + min_cd * 0.1 + min_nd * 0.1
     if (isNaN(palette_score) || !palette_score) return -10000000
     if (sign)
