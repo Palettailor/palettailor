@@ -1266,9 +1266,9 @@ function drawTransferFunction(palette) {
             // "</td><td>" +
             // color_name2 +
             "</td><td>" +
-            colorConversionFns['Hex'](palette[id]) + "-" +
-            (d3.hsl(palette[id])).l.toFixed(2) + "-" +
-            (d3.hsl(palette[id + x_labels.length])).l.toFixed(2) +
+            colorConversionFns['Hex'](palette[id]) + //"-" +
+            // (d3.hsl(palette[id])).l.toFixed(2) + "-" +
+            // (d3.hsl(palette[id + x_labels.length])).l.toFixed(2) +
             // colorConversionFns['LCH2'](palette[id + x_labels.length]) +
             // ((d3.lab(d3.rgb(palette[id])))).L.toFixed(0) + "-" +
             // ((d3.lab(d3.rgb(palette[id + x_labels.length])))).L.toFixed(0) + "-" +
