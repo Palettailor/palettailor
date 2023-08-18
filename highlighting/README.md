@@ -1,1 +1,1 @@
-# Palettailor for Highlighting
+# Interactive Context-Preserving Color Highlighting for Multiclass Scatterplots

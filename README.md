@@ -1,1 +1,1 @@
-# Interactive Context-Preserving Color Highlighting for Multiclass Scatterplots
+# Palettailor: Discriminable Colorization for Categorical Data
