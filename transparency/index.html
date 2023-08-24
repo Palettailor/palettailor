@@ -150,6 +150,7 @@
     });
 
     function loadData(text) {
+        d3.select("#status_running").text("Processing Data...")
         //parse pure text to data, and cast string to number
         let source_data = d3.csvParseRows(text)
         console.log("source_data", source_data);
@@ -476,9 +477,9 @@
         let used_colors = []
         for (let i = 0; i < input_colors.length; i++) {
             let c = d3.rgb(input_colors[i])
-            solution.palette.push([c.r, c.g, c.b, 0.5])
             used_colors.push([c.r, c.g, c.b, 0.5])
         }
+        solution.palette = used_colors.slice(0, cluster_num)
         // used_colors = [[255, 0, 0, 0], [0, 255, 0, 0], [0, 0, 255, 1]]
         // used_colors = [[0, 255, 0, 0.78], [255, 0, 0, 0.37], [0, 0, 255, 0.28]] // algorithm illustration
         // //fig1
