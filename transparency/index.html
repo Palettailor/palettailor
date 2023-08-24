@@ -36,9 +36,9 @@
 
         <h1>Optimizing Color Assignment for Transparent Overlapping Histograms</h1>
         <hr>
-        <!-- <button onclick="F_Open_dialog()" style="margin-bottom: 5px;">Load data</button>
+        <button onclick="F_Open_dialog()" style="margin-bottom: 5px;">Load Histogram data</button>
         <input type="file" id="fileLoad" style="display:none">
-        <br> -->
+        <br>
         <button onclick="exampleHist()">Histogram Example </button>
         <button onclick="exampleParallel()">IPC Example </button>
         <button onclick="exampleHull()">Hull Example </button>
@@ -83,7 +83,7 @@
         <button onclick="reGenerate()">Re-generate</button>
         <button onclick="showEnumeration()">Enumerating</button>
         <!-- model selection -->
-        <fieldset>
+        <fieldset style="margin-top: 5px;">
             <legend>Model Selection</legend>
             <div>
                 <input type="radio" id="modelChoice1" name="model" value="standard" checked />
@@ -109,6 +109,7 @@
         <hr>
         <h3>Manually Design Histogram</h3>
         <button onclick="manipulateBar()">Manually Design</button>
+        <button onclick="confirmDesign()">Confirm Change</button>
         <button onclick="saveTable()">Save data</button>
         <div id="manipulateBarDiv"></div>
     </div>
@@ -148,6 +149,43 @@
         reader.readAsText(file);
     });
 
+    function loadData(text) {
+        //parse pure text to data, and cast string to number
+        let source_data = d3.csvParseRows(text)
+        console.log("source_data", source_data);
+
+        hist_data = []
+        for (let i = 0; i < source_data.length; i++) {
+            hist_data.push([])
+            for (let j = 0; j < source_data[i].length; j++) {
+                if (source_data[i][j] != '') {
+                    hist_data[i].push(+source_data[i][j])
+                }
+            }
+        }
+        bars_num = hist_data[0].length
+        axis_x_bandwidth = Math.floor(svg_width / bars_num)
+        svg_margin.left = svg_margin.right = (SVGWIDTH - axis_x_bandwidth * bars_num) / 2
+        axis_y = d3.scaleLinear()
+            .range([svg_height, 0])
+            .domain([0, d3.max(hist_data, function (d) {
+                return d3.max(d)
+            })]);
+        global_axis_pixels = {}
+        blended_colors_all = {}
+        prepareColorPixels(hist_data, renderHistComponent)
+        let nIntervId = setInterval(function () {
+            if (Object.keys(blended_colors_all).length != 0
+                && blended_colors_arr.length != 0
+                && Object.keys(pixels_num_weight).length != 0
+                && Object.keys(blended_colors_neighboring_relation).length != 0) {
+                clearInterval(nIntervId)
+                getUnrelatedColors(blended_colors_all)
+                reGenerate()
+                d3.select("#status_running").text("")
+            }
+        }, 500);
+    }
 
     function exampleHist() {
         d3.select("#status_running").text("Processing Data...")
@@ -441,6 +479,27 @@
             solution.palette.push([c.r, c.g, c.b, 0.5])
             used_colors.push([c.r, c.g, c.b, 0.5])
         }
+        // used_colors = [[255, 0, 0, 0], [0, 255, 0, 0], [0, 0, 255, 1]]
+        // used_colors = [[0, 255, 0, 0.78], [255, 0, 0, 0.37], [0, 0, 255, 0.28]] // algorithm illustration
+        // //fig1
+        // used_colors = [[225, 87, 89, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
+        // used_colors = [[225, 87, 89, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
+        // used_colors = [[225, 87, 89, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
+        // used_colors = [[237, 201, 72, 0.69], [225, 87, 89, 0.29], [78, 121, 167, 0.30]]
+        // used_colors = [[237, 201, 72, 0.77], [78, 121, 167, 0.38], [225, 87, 89, 0.33]]
+        // used_colors = [[237, 201, 72, 0.80], [225, 87, 89, 0.54], [78, 121, 167, 0.36]]
+        // //fig3
+        // used_colors = [[242, 142, 43, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
+        // used_colors = [[242, 142, 43, 0.80], [237, 201, 72, 0.62], [78, 121, 167, 0.44]]
+        // used_colors = [[78, 121, 167, 0.50], [242, 142, 43, 0.50], [237, 201, 72, 0.50]]
+        // used_colors = [[242, 142, 43, 0.76], [78, 121, 167, 0.38], [237, 201, 72, 0.47]]
+        // //fig4
+        // used_colors = [[89, 161, 79, 0.34], [78, 121, 167, 0.29], [118, 183, 178, 0.41]]
+        // used_colors = [[89, 161, 79, 0.81], [78, 121, 167, 0.77], [225, 87, 89, 0.49]]
+        // used_colors = [[78, 121, 167, 0.79], [225, 87, 89, 0.39], [89, 161, 79, 0.31]]
+        // used_colors = [[89, 161, 79, 0.75], [237, 201, 72, 0.56], [78, 121, 167, 0.24]]
+
+        // solution.palette = used_colors
 
         let div = d3.select("#mainDiv")
         let opacityDiv
