@@ -34,11 +34,11 @@
 <body>
     <div id="variableDiv" style="position: fixed;width: 400px;">
 
-        <h1>Optimizing Color Assignment for Transparent Overlapping Histograms</h1>
+        <h2>Optimizing Color Assignment and Opacity <br>for Reducing Misinterpretation <br>of Overlapping Histograms</h2>
         <hr>
-        <button onclick="F_Open_dialog()" style="margin-bottom: 5px;">Load Histogram data</button>
-        <input type="file" id="fileLoad" style="display:none">
-        <br>
+        <!-- <button onclick="F_Open_dialog()" style="margin-bottom: 5px;">Load Histogram data</button>
+        <input type="file" id="fileLoad" style="display:none"> -->
+        <!-- <br> -->
         <button onclick="exampleHist()">Histogram Example </button>
         <button onclick="exampleParallel()">IPC Example </button>
         <button onclick="exampleHull()">Hull Example </button>
@@ -480,7 +480,7 @@
             used_colors.push([c.r, c.g, c.b, 0.5])
         }
         solution.palette = used_colors.slice(0, cluster_num)
-        // used_colors = [[255, 0, 0, 0], [0, 255, 0, 0], [0, 0, 255, 1]]
+        // used_colors = [[160, 160, 160, 1], [160, 160, 160, 0], [160, 160, 160, 0], [160, 160, 160, 0]]
         // used_colors = [[0, 255, 0, 0.78], [255, 0, 0, 0.37], [0, 0, 255, 0.28]] // algorithm illustration
         // //fig1
         // used_colors = [[225, 87, 89, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
@@ -489,11 +489,21 @@
         // used_colors = [[237, 201, 72, 0.69], [225, 87, 89, 0.29], [78, 121, 167, 0.30]]
         // used_colors = [[237, 201, 72, 0.77], [78, 121, 167, 0.38], [225, 87, 89, 0.33]]
         // used_colors = [[237, 201, 72, 0.80], [225, 87, 89, 0.54], [78, 121, 167, 0.36]]
+        
+        // //fig1 - new
+        // used_colors = [[237, 201, 72, 0.5], [225, 87, 89, 0.5], [78, 121, 167, 0.5]]
+        // used_colors = [[237, 201, 72, 0.5], [225, 87, 89, 0.5], [78, 121, 167, 0.5]]
+        // used_colors = [[237, 201, 72, 0.5], [225, 87, 89, 0.5], [78, 121, 167, 0.5]]
+        // used_colors = [[225, 87, 89, 0.59], [237, 201, 72, 0.55], [78, 121, 167, 0.30]]
+        // used_colors = [[237, 201, 72, 0.77], [78, 121, 167, 0.38], [225, 87, 89, 0.33]]
+        // used_colors = [[237, 201, 72, 0.80], [225, 87, 89, 0.54], [78, 121, 167, 0.36]]
+
         // //fig3
         // used_colors = [[242, 142, 43, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
         // used_colors = [[242, 142, 43, 0.80], [237, 201, 72, 0.62], [78, 121, 167, 0.44]]
         // used_colors = [[78, 121, 167, 0.50], [242, 142, 43, 0.50], [237, 201, 72, 0.50]]
         // used_colors = [[242, 142, 43, 0.76], [78, 121, 167, 0.38], [237, 201, 72, 0.47]]
+        
         // //fig4
         // used_colors = [[89, 161, 79, 0.34], [78, 121, 167, 0.29], [118, 183, 178, 0.41]]
         // used_colors = [[89, 161, 79, 0.81], [78, 121, 167, 0.77], [225, 87, 89, 0.49]]
