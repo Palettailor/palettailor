@@ -1076,10 +1076,6 @@
         drawInteractiveLinechart(fig_16_data, "fig-16-div", used_palette, "Tableau (optimal assignment) with Tableau Highlighter", labelToClass)
 
         used_palette = fig_16_line_ours.slice()
-        used_palette = fig_16_line_tableau.slice()
-        for (let i = 0; i < class_number; i++) {
-            used_palette[i + class_number] = "#ccc"
-        }
         drawInteractiveLinechart(fig_16_data, "fig-16-div", used_palette, "Our Context-preserving Highlighting", labelToClass)
 
     }
