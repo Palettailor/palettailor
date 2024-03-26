@@ -459,7 +459,7 @@
         let div = d3.select("#mainDiv")
         let opacityDiv
         // changing assignment and depth, without changing color
-        if (input_colors.length > cluster_num) {
+        if (input_colors.length >= cluster_num) {
             optimizeColorSign = -0.5
 
             solution = simulatedAnnealing(hist_data, used_colors, orders)
