@@ -455,15 +455,15 @@ function showOptimizedColors(palette, order, divObj) {
     //     info_div.append("br")
     // }
     for (let i = 0; i < palette.length; i++) {
-        let cj = palette[i]
+        let cj = blended_colors_all[i]
         let lab_cj = d3.lab(d3.rgb(cj[0], cj[1], cj[2]))
         info_div.append("span")
             .style("width", "30px").style("height", "30px").style("display", "inline-block")
-            .style("margin-left", "10px").style("background", "rgba(" + cj.join(",") + ")")
-        info_div.append("span").text(i + ", Lab(" + Math.round(lab_cj.L) + "," + Math.round(lab_cj.a) + "," + Math.round(lab_cj.b) + "); "
+            .style("margin-left", "10px").style("background", "rgba(" + palette[i].join(",") + ")")
+        info_div.append("span").text(i + ", Lab(" + Math.round(lab_cj.L) + "," + Math.round(lab_cj.a) + "," + Math.round(lab_cj.b) + "); " + getColorName(d3.rgb(cj[0], cj[1], cj[2]))[0]
         ).style("display", "inline-block").style("vertical-align", "top").style("margin-left", "10px")
         info_div.append("span").style("display", "inline-block")
-            .text("rgba( " + (palette[i].slice(0, 3)).map(d => d.toFixed(0)).join(", ") + ", " + palette[i][3].toFixed(2) + " ); " + getColorName(d3.rgb(cj[0], cj[1], cj[2]))[0]).style("vertical-align", "top").style("margin-left", "10px")
+            .text(" <= rgba( " + (palette[i].slice(0, 3)).map(d => d.toFixed(0)).join(", ") + ", " + palette[i][3].toFixed(2) + " ); ").style("vertical-align", "top").style("margin-left", "10px")
         info_div.append("br")
     }
     // drawColorWheel(divObj, all_colors)
