@@ -128,6 +128,12 @@ function simulatedAnnealing(histData, used_colors, initial_order) {
     let disturbColor = function (c) {
         return normScope(c + getRandomIntInclusive(-10, 10), [0, 255])
     }
+    let disturbColorL = function (c) {
+        let color_rgb = d3.rgb(disturbColor(c[0]), disturbColor(c[1]), disturbColor(c[2])),
+            color_lab = d3.lab(color_rgb),
+            color_new = d3.rgb(d3.lab(normScope(color_lab.l, [35, 95]), color_lab.a, color_lab.b))
+        return [color_new.r, color_new.g, color_new.b, c[3]]
+    }
 
     while (cur_temper > end_temper) {
         for (let i = 0; i < 1; i++) { //disturb at each temperature
@@ -169,6 +175,7 @@ function simulatedAnnealing(histData, used_colors, initial_order) {
                     if (Math.random() > 0.5) {
                         if (Math.random() > 0.5) {
                             curr_colors[idx] = [disturbColor(curr_colors[idx][0]), disturbColor(curr_colors[idx][1]), disturbColor(curr_colors[idx][2]), curr_colors[idx][3]]
+                            // curr_colors[idx] = disturbColorL(curr_colors[idx])
                             while (getColorName(d3.rgb(curr_colors[idx][0], curr_colors[idx][1], curr_colors[idx][2]))[0] === 'grey') {
                                 curr_colors[idx] = [disturbColor(curr_colors[idx][0]), disturbColor(curr_colors[idx][1]), disturbColor(curr_colors[idx][2]), curr_colors[idx][3]]
                             }
