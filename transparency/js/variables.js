@@ -27,7 +27,7 @@ var axis_y = d3.scaleLinear()
     .domain([0, 1.2]);
 
 let global_pixels_arr
-let threshold_variables = [3, 10, 0.01, 100]
+let threshold_variables = [3, 5, 0.01, 100]
 let weight_global = [1, 1, 1]
 let unrelated_colors_global
 let curr_blending_method = "Standard Color Blending"

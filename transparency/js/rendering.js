@@ -312,46 +312,15 @@ function showOptimizedColors(palette, order, divObj) {
     // get composited colors
     getBlendedColors(palette, order)
 
-    let div = divObj.append("div").style("display", "inline-block").style("width", "500px").style("margin-left", "50px").style("text-align", "left")
+    let div = divObj.append("div").style("display", "inline-block").style("width", "500px").style("margin-left", "50px").style("text-align", "left").style("vertical-align", 'top')
     let jnd_div = div.append("div").style("display", "inline-block")
     jnd_div.append("h2")
         .text(" < JND( " + threshold_variables[0].toFixed(2) + " )")
     let lum_div = div.append("div").style("display", "inline-block")
     lum_div.append("h2")
         .text(" unsatisfied Luminance: ")
-    let name_div = div.append("div").style("display", "inline-block")
-    name_div.append("h2")
-        .text(" unsatisfied Name Similarity: ")
-    let sep_div_main = div.append("div").style("display", "inline-block")
-    sep_div_main.append("h2").on("click", function () {
-        if (sep_div.style("display") == 'none')
-            sep_div.style("display", "inline-block")
-        else
-            sep_div.style("display", "none")
-    })
-        .text("Related : ")
-    let sep_div = sep_div_main.append("div").style("display", "none")
-    let cont_div_main = div.append("div").style("display", "inline-block").style("margin-left", "10px")
-    cont_div_main.append("h2").on("click", function () {
-        if (cont_div.style("display") == 'none')
-            cont_div.style("display", "inline-block")
-        else
-            cont_div.style("display", "none")
-    })
-        .text("Separability : ")
-    let cont_div = cont_div_main.append("div").style("display", "none")
 
-    let unrelated_div_main = div.append("div").style("display", "inline-block").style("margin-left", "10px")
-    unrelated_div_main.append("h2").on("click", function () {
-        if (unrelated_div.style("display") == 'none')
-            unrelated_div.style("display", "inline-block")
-        else
-            unrelated_div.style("display", "none")
-    })
-        .text("Unrelated : ")
-    let unrelated_div = unrelated_div_main.append("div").style("display", "none")
-
-    let jnd_count = 0, lumi_count = 0, name_count = 0
+    let jnd_count = 0, lumi_count = 0
     // calculate all color distance and name difference
     let diff_arr = {}
     let blended_colors_all_arr = Object.keys(blended_colors_all)
@@ -366,7 +335,7 @@ function showOptimizedColors(palette, order, divObj) {
         let lab_cj = d3.lab(d3.rgb(cj[0], cj[1], cj[2]))
         let hsl_cj = d3.hsl(d3.rgb(cj[0], cj[1], cj[2]))
         let hcl_cj = d3.hcl(lab_cj)
-        let ns = getColorSaliency(lab_cj)
+        // let ns = getColorSaliency(lab_cj)
         // name_saliency_score_arr.push(ns)
         // if (getColorName(lab_cj)[0] == 'grey') return -1000000
         for (let j = i + 1; j < blended_colors_all_arr.length; j++) {
@@ -374,20 +343,6 @@ function showOptimizedColors(palette, order, divObj) {
             if (!diff_arr[key2]) diff_arr[key2] = {}
             let ck = blended_colors_all[key2]
             let lab_ck = d3.lab(d3.rgb(ck[0], ck[1], ck[2]))
-
-            // // luminance order
-            // if ((key.length - key2.length) * (lab_cj.L - lab_ck.L) > 0) {
-            //     lumi_count++
-            //     lum_div.append("span")
-            //         .style("width", "30px").style("height", "30px").style("display", "inline-block")
-            //         .style("margin-left", "10px").style("background", "rgba(" + blended_colors_all[key].join(",") + ")")
-            //     lum_div.append("span")
-            //         .style("width", "30px").style("height", "30px").style("display", "inline-block")
-            //         .style("margin-left", "10px").style("background", "rgba(" + blended_colors_all[key2].join(",") + ")")
-            //     lum_div.append("span").text(key + " : " + key2 + " = " + lab_cj.L.toFixed(2) + " : " + lab_ck.L.toFixed(2))
-            //         .style("display", "inline-block").style("vertical-align", "top")
-            //     lum_div.append("br")
-            // }
 
             let hsl_ck = d3.hsl(d3.rgb(ck[0], ck[1], ck[2]))
             let hcl_ck = d3.hcl(lab_ck)
@@ -430,54 +385,16 @@ function showOptimizedColors(palette, order, divObj) {
         if (tmp.length == 0) tmp = [0]
         sum_len += tmp.length
         relateness_score += d3.sum(tmp) * Math.sqrt(overlap_size_arr[blended_colors_arr[i][0]] * blended_num_arr[blended_colors_arr[i][0]])
-
-        let key = blended_colors_arr[i][0]
-        sep_div.append("span")
-            .style("width", "30px").style("height", "30px").style("display", "inline-block")
-            .style("margin-left", "10px").style("background", "rgba(" + blended_colors_all[key].join(",") + ")").style("font-weight", "bold")
-        sep_div.append("span").text(key + " : " + (d3.sum(tmp) * overlap_size_arr[key] * blended_num_arr[key]).toFixed(2) + " = " + d3.sum(tmp).toFixed(2) + "*" + overlap_size_arr[key].toFixed(2) + "*" + blended_num_arr[key].toFixed(2) + "=>" + Math.sqrt(overlap_size_arr[blended_colors_arr[i][0]] * blended_num_arr[blended_colors_arr[i][0]]).toFixed(2))
-            .style("display", "inline-block").style("vertical-align", "top")
-        sep_div.append("br")
-
         for (let j = 0; j < blended_colors_arr[i].length; j++) {
             for (let k = j + 1; k < blended_colors_arr[i].length; k++) {
                 let ns = diff_arr[blended_colors_arr[i][j]][blended_colors_arr[i][k]][1]
-                if (ns < threshold_variables[2]) {
-                    name_count++
-                    name_div.append("span")
-                        .style("width", "30px").style("height", "30px").style("display", "inline-block")
-                        .style("margin-left", "10px").style("background", "rgba(" + blended_colors_all[blended_colors_arr[i][j]].join(",") + ")")
-                    name_div.append("span")
-                        .style("width", "30px").style("height", "30px").style("display", "inline-block")
-                        .style("margin-left", "10px").style("background", "rgba(" + blended_colors_all[blended_colors_arr[i][k]].join(",") + ")")
-                    name_div.append("span").text(blended_colors_arr[i][j] + " : " + blended_colors_arr[i][k] + " = " + ns.toFixed(2))
-                        .style("display", "inline-block").style("vertical-align", "top")
-                    name_div.append("br")
-                }
                 all_ns_arr.push(ns)
-                sep_div.append("span")
-                    .style("width", "30px").style("height", "30px").style("display", "inline-block")
-                    .style("margin-left", "20px").style("background", "rgba(" + blended_colors_all[blended_colors_arr[i][j]].join(",") + ")")
-                sep_div.append("span")
-                    .style("width", "30px").style("height", "30px").style("display", "inline-block")
-                    .style("margin-left", "10px").style("background", "rgba(" + blended_colors_all[blended_colors_arr[i][k]].join(",") + ")")
-                sep_div.append("span").text(blended_colors_arr[i][j] + " | " + blended_colors_arr[i][k] + " : NS = " + ns.toFixed(2)
-                    + " , CD = " + diff_arr[blended_colors_arr[i][j]][blended_colors_arr[i][k]][0].toFixed(2)
-                    + " , HD = " + diff_arr[blended_colors_arr[i][j]][blended_colors_arr[i][k]][2].toFixed(2)
-                    + " , LD = " + diff_arr[blended_colors_arr[i][j]][blended_colors_arr[i][k]][3].toFixed(2))
-                    .style("display", "inline-block").style("vertical-align", "top")
-                sep_div.append("br")
             }
         }
-        sep_div.append("hr")
     }
     relateness_score /= sum_len
     relateness_score += d3.min(all_ns_arr)
-    if (name_count == 0) {
-        name_div.remove()
-    }
 
-    // console.log(pixels_num_weight, "pixels_num_weight", blended_colors_neighboring_relation);
     // separability score
     let separability_score = [], background_score = []
     for (let j = 0; j < blended_colors_all_arr.length; j++) {
@@ -485,15 +402,6 @@ function showOptimizedColors(palette, order, divObj) {
         if (key === 'bgColor') continue
         for (let i = 0; i < blended_colors_neighboring_relation[key].length; i++) {
             separability_score.push(diff_arr[key][blended_colors_neighboring_relation[key][i]][0] * (1 + pixels_num_weight[key]))
-            cont_div.append("span")
-                .style("width", "30px").style("height", "30px").style("display", "inline-block")
-                .style("margin-left", "20px").style("background", "rgba(" + blended_colors_all[key].join(",") + ")")
-            cont_div.append("span")
-                .style("width", "30px").style("height", "30px").style("display", "inline-block")
-                .style("margin-left", "10px").style("background", "rgba(" + blended_colors_all[blended_colors_neighboring_relation[key][i]].join(",") + ")")
-            cont_div.append("span").text(key + " | " + blended_colors_neighboring_relation[key][i] + " : CD = " + diff_arr[key][blended_colors_neighboring_relation[key][i]][0].toFixed(2) + " x " + " R( " + (1 + pixels_num_weight[key]).toFixed(2) + " ) = " + (diff_arr[key][blended_colors_neighboring_relation[key][i]][0] * (1 + pixels_num_weight[key])).toFixed(2))
-                .style("display", "inline-block").style("vertical-align", "top")
-            cont_div.append("br")
         }
         background_score.push(diff_arr[key]['bgColor'][3])
         if (diff_arr[key]['bgColor'][3] < threshold_variables[1]) {
@@ -505,62 +413,57 @@ function showOptimizedColors(palette, order, divObj) {
                 .style("display", "inline-block").style("vertical-align", "top")
             lum_div.append("br")
         }
-        cont_div.append("hr")
     }
-    // console.log(separability_score);
     separability_score = d3.min(separability_score)
-    // console.log(separability_score);
     background_score = d3.min(background_score)
     if (lumi_count == 0) {
         lum_div.remove()
     }
 
-    sep_div_main.select("h2").text("relateness ( " + relateness_score.toFixed(2) + " ): ")
-    cont_div_main.select("h2").text("separability ( " + separability_score.toFixed(2) + " ): ")
-
     let unrelateness_score = []
     for (let i = 0; i < unrelated_colors_global.length; i++) {
         unrelateness_score.push(diff_arr[unrelated_colors_global[i][0]][unrelated_colors_global[i][1]][1])
-        unrelated_div.append("span")
-            .style("width", "30px").style("height", "30px").style("display", "inline-block")
-            .style("margin-left", "20px").style("background", "rgba(" + blended_colors_all[unrelated_colors_global[i][0]].join(",") + ")")
-        unrelated_div.append("span")
-            .style("width", "30px").style("height", "30px").style("display", "inline-block")
-            .style("margin-left", "10px").style("background", "rgba(" + blended_colors_all[unrelated_colors_global[i][1]].join(",") + ")")
-        unrelated_div.append("span").text(unrelated_colors_global[i][0] + " | " + unrelated_colors_global[i][1] + " : NS = " + (diff_arr[unrelated_colors_global[i][0]][unrelated_colors_global[i][1]][1]).toFixed(2))
-            .style("display", "inline-block").style("vertical-align", "top")
-        unrelated_div.append("br")
     }
     unrelateness_score = -d3.max(unrelateness_score) - d3.mean(unrelateness_score)
-    // unrelateness_score = d3.mean(unrelateness_score)
-    unrelated_div_main.select("h2").text("unrelateness ( " + unrelateness_score.toFixed(2) + " ): ")
 
     let total_score = weight_global[0] * relateness_score + weight_global[1] * unrelateness_score + weight_global[2] * separability_score
 
     div.append("h2")
-        .text("score = " + total_score.toFixed(2) + " = " + weight_global[0] + " x Relateness(" + relateness_score.toFixed(2) + ") + " + weight_global[1] +
-            " x unRelateness(" + unrelateness_score.toFixed(2) + ") + " + weight_global[2] + " x Separability(" + separability_score.toFixed(2) + ")")
+        .text("Score: " + total_score.toFixed(2) + " = " + weight_global[0].toFixed(2) + " x WA(" + relateness_score.toFixed(2) + ") + " + weight_global[1].toFixed(2) +
+            " x BD(" + unrelateness_score.toFixed(2) + ") + " + weight_global[2].toFixed(2) + " x CS(" + separability_score.toFixed(2) + ")")
 
     let info_div = div.append("div").style("display", "inline-block")
     info_div.append("h2")
-        .text("rendering order is " + order.join(" - "))
+        .text("Rendering Order: " + order.join(" - "))
     let all_colors = []
-    for (let i = 0; i < blended_colors_all_arr.length; i++) {
-        if (blended_colors_all_arr[i] == "bgColor") continue
-        let cj = blended_colors_all[blended_colors_all_arr[i]]
+    // for (let i = 0; i < blended_colors_all_arr.length; i++) {
+    //     if (blended_colors_all_arr[i] == "bgColor") continue
+    //     let cj = blended_colors_all[blended_colors_all_arr[i]]
+    //     let lab_cj = d3.lab(d3.rgb(cj[0], cj[1], cj[2]))
+    //     let hsl_cj = d3.hsl(d3.rgb(cj[0], cj[1], cj[2]))
+    //     all_colors.push([hsl_cj, blended_colors_all_arr[i]])
+    //     info_div.append("span")
+    //         .style("width", "30px").style("height", "30px").style("display", "inline-block")
+    //         .style("margin-left", "10px").style("background", "rgba(" + cj.join(",") + ")")
+    //     info_div.append("span").text(blended_colors_all_arr[i] + ", Lab(" + Math.round(lab_cj.L) + "," + Math.round(lab_cj.a) + "," + Math.round(lab_cj.b) + ")"
+    //         + getColorName(d3.rgb(cj[0], cj[1], cj[2]))[0]).style("display", "inline-block").style("vertical-align", "top").style("margin-left", "10px")
+    //     let idx_arr = blended_colors_all_arr[i].split("-")
+    //     if (idx_arr.length === 1) {
+    //         info_div.append("span").style("display", "inline-block")
+    //             .text("rgba( " + (palette[+idx_arr[0]].slice(0, 3)).map(d => d.toFixed(0)).join(", ") + ", " + palette[+idx_arr[0]][3].toFixed(2) + " )").style("vertical-align", "top").style("margin-left", "10px")
+    //     }
+    //     info_div.append("br")
+    // }
+    for (let i = 0; i < palette.length; i++) {
+        let cj = palette[i]
         let lab_cj = d3.lab(d3.rgb(cj[0], cj[1], cj[2]))
-        let hsl_cj = d3.hsl(d3.rgb(cj[0], cj[1], cj[2]))
-        all_colors.push([hsl_cj, blended_colors_all_arr[i]])
         info_div.append("span")
             .style("width", "30px").style("height", "30px").style("display", "inline-block")
             .style("margin-left", "10px").style("background", "rgba(" + cj.join(",") + ")")
-        info_div.append("span").text(blended_colors_all_arr[i] + ", Lab(" + Math.round(lab_cj.L) + "," + Math.round(lab_cj.a) + "," + Math.round(lab_cj.b) + ")"
-            + ", hsl(" + Math.round(hsl_cj.h) + "," + (hsl_cj.s).toFixed(2) + "," + (hsl_cj.l).toFixed(2) + ")" + ", Size(" + pixels_num_weight[blended_colors_all_arr[i]].toFixed(2) + "), " + getColorName(d3.rgb(cj[0], cj[1], cj[2]))[0]).style("display", "inline-block").style("vertical-align", "top").style("margin-left", "10px")
-        let idx_arr = blended_colors_all_arr[i].split("-")
-        if (idx_arr.length === 1) {
-            info_div.append("span").style("display", "inline-block")
-                .text("rgba( " + (palette[+idx_arr[0]].slice(0, 3)).map(d => d.toFixed(0)).join(", ") + ", " + palette[+idx_arr[0]][3].toFixed(2) + " )").style("vertical-align", "top").style("margin-left", "10px")
-        }
+        info_div.append("span").text(i + ", Lab(" + Math.round(lab_cj.L) + "," + Math.round(lab_cj.a) + "," + Math.round(lab_cj.b) + "); "
+        ).style("display", "inline-block").style("vertical-align", "top").style("margin-left", "10px")
+        info_div.append("span").style("display", "inline-block")
+            .text("rgba( " + (palette[i].slice(0, 3)).map(d => d.toFixed(0)).join(", ") + ", " + palette[i][3].toFixed(2) + " ); " + getColorName(d3.rgb(cj[0], cj[1], cj[2]))[0]).style("vertical-align", "top").style("margin-left", "10px")
         info_div.append("br")
     }
     // drawColorWheel(divObj, all_colors)
