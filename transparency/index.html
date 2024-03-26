@@ -20,7 +20,33 @@
         button {
             width: 200px;
         }
+
+        /* This parent can be any width and height */
+        #renderingDiv {
+            text-align: center;
+        }
+
+        /* The ghost, nudged to maintain perfect centering */
+        #renderingDiv:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+            margin-right: -0.25em;
+            /* Adjusts for spacing */
+        }
+
+        /* The element to be centered, can
+   also be of any width and height */
+        .delete_sign {
+            display: inline-block;
+            vertical-align: middle;
+            font-size: large;
+            float: right;
+            margin-right: 10px;
+        }
     </style>
+    <link href="../../css/elegant-icons-style.css" rel="stylesheet" />
     <script type="text/javascript" src="../../js/lib/d3.v4.min.js"></script>
     <script type="text/javascript" src="../../js/lib/d3.color.min.js"></script>
     <script type="text/javascript" src="../../js/lib/c3.min.js"></script>
@@ -461,13 +487,15 @@
         solution.palette = used_colors.slice(0, cluster_num)
 
         let div = d3.select("#mainDiv")
+        // div.insert("hr", ":first-child")
         let opacityDiv
         // changing assignment and depth, without changing color
         if (input_colors.length >= cluster_num) {
             optimizeColorSign = -0.5
 
             solution = simulatedAnnealing(hist_data, used_colors, orders)
-            opacityDiv = div.append("div").attr("id", "depthDiv").style("display", "inline-block").style("margin-left", "30px")
+            opacityDiv = div.insert("div", ":first-child").attr("id", "renderingDiv")//.style("display", "inline-block").style("margin-left", "30px")
+
             opacityDiv.append("h2").text("Optimal Color Assignment & Opacity & Rendering Order")
             score = getPaletteScore(solution.palette, solution.order)
             if (Object.keys(global_axis_pixels).length != 0)
@@ -479,7 +507,7 @@
             optimizeColorSign = 1.5
 
             solution = simulatedAnnealing(hist_data, [], orders)
-            opacityDiv = div.append("div").attr("id", "depthDiv").style("display", "inline-block").style("margin-left", "30px")
+            opacityDiv = div.insert("div", ":first-child").attr("id", "renderingDiv")//.style("display", "inline-block").style("margin-left", "30px")
             opacityDiv.append("h2").text("Optimal Color & Opacity & Rendering Order")
             score = getPaletteScore(solution.palette, solution.order)
             if (Object.keys(global_axis_pixels).length != 0)
@@ -487,14 +515,21 @@
             renderingPixels(blended_colors_all, opacityDiv)
             showOptimizedColors(solution.palette, solution.order, opacityDiv)
         }
+        opacityDiv.append("div")
+            .attr("class", "delete_sign")
+            .append("i")
+            .attr("class", "icon_trash")
+            .style("color", "black")
+            .on("click", function () {
+                opacityDiv.remove();
+                d3.event.stopPropagation()
+            });
+        opacityDiv.append("hr")
 
-        div.append("hr")
-        div.append("br")
-        div.append("hr")
     }
 
     function reGenerateFast() {
-        d3.selectAll("#mainDiv").selectAll("*").remove()
+        // d3.selectAll("#mainDiv").selectAll("*").remove()
         d3.select("#status_running").text("Optimizing...")
         setTimeout(() => {
             dec_factor = 0.99
@@ -504,7 +539,7 @@
     }
 
     function reGenerateQuality() {
-        d3.selectAll("#mainDiv").selectAll("*").remove()
+        // d3.selectAll("#mainDiv").selectAll("*").remove()
         d3.select("#status_running").text("Optimizing...")
         setTimeout(() => {
             dec_factor = 0.999
