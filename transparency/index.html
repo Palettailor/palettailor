@@ -17,51 +17,54 @@
             shape-rendering: crispEdges;
         }
     </style>
-    <script type="text/javascript" src="../js/lib/d3.v4.min.js"></script>
-    <script type="text/javascript" src="../js/lib/d3.color.min.js"></script>
-    <script type="text/javascript" src="../js/lib/c3.min.js"></script>
+    <script type="text/javascript" src="../../js/lib/d3.v4.min.js"></script>
+    <script type="text/javascript" src="../../js/lib/d3.color.min.js"></script>
+    <script type="text/javascript" src="../../js/lib/c3.min.js"></script>
     <script>
-        c3.load("../js/lib/c3_data.json");
+        c3.load("../../js/lib/c3_data.json");
     </script>
 
     <script type="text/javascript" src="js/variables.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
     <script type="text/javascript" src="js/rendering.js"></script>
     <script type="text/javascript" src="js/optimization.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
 
 </head>
 
 <body>
-    <div id="variableDiv" style="position: fixed;width: 400px;">
+    <div id="variableDiv" style="position: fixed;width: 500px;height: 100%;overflow-y: scroll;">
 
-        <h2>Optimizing Color Assignment and Opacity <br>for Reducing Misinterpretation <br>of Overlapping Histograms</h2>
+        <h2>Optimizing Color and Transparency <br>to Enhance the Perception of Overlapped Charts
+        </h2>
         <hr>
-        <!-- <button onclick="F_Open_dialog()" style="margin-bottom: 5px;">Load Histogram data</button>
-        <input type="file" id="fileLoad" style="display:none"> -->
+        <button onclick="F_Open_dialog(0)" style="margin-bottom: 5px;">Load Histogram</button>
+        <!-- <input type="file" id="fileLoad" style="display:none"> -->
         <!-- <br> -->
-        <button onclick="exampleHist()">Histogram Example </button>
-        <button onclick="exampleParallel()">IPC Example </button>
-        <button onclick="exampleHull()">Hull Example </button>
+        <button onclick="F_Open_dialog(1)">Load Parallel Coordinates </button>
+        <button onclick="F_Open_dialog(2)">Load Convex Hull </button>
+        <button onclick="F_Open_dialog(3)">Load Venn Diagram </button>
         <br>
         <label id="status_running" style="color: red;"></label>
         <hr>
         <h3>Scoring Function Weight</h3>
-        <label for="weightInputName-0">&nbsp;&nbsp;&nbsp;Within-Class Association Weight:</label>
-        <input type="range" id="weightInputId-0" name="weightInputName-0" min="0" max="100" value="50"
+        <label for="weightInputName-0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Within-Class Association
+            Weight:</label>
+        <input type="range" id="weightInputId-0" name="weightInputName-0" min="0" max="100" value="100"
             oninput="changeValue(this)">
-        <label id="weightInputValueId-0">0.50</label>
+        <label id="weightInputValueId-0">1.00</label>
         <br>
-        <label for="weightInputName-1">Between-Class Association Weight:</label>
-        <input type="range" id="weightInputId-1" name="weightInputName-1" min="0" max="100" value="50"
+        <label for="weightInputName-1">Between-Class Disassociation Weight:</label>
+        <input type="range" id="weightInputId-1" name="weightInputName-1" min="0" max="100" value="100"
             oninput="changeValue(this)">
-        <label id="weightInputValueId-1">0.50</label>
+        <label id="weightInputValueId-1">1.00</label>
         <br>
         <label
-            for="weightInputName-2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Color
+            for="weightInputName-2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Color
             Separability Weight:</label>
-        <input type="range" id="weightInputId-2" name="weightInputName-2" min="0" max="100" value="50"
+        <input type="range" id="weightInputId-2" name="weightInputName-2" min="0" max="100" value="100"
             oninput="changeValue(this)">
-        <label id="weightInputValueId-2">0.50</label>
+        <label id="weightInputValueId-2">1.00</label>
         <br>
         <hr>
         <h3>Minimum JND Threshold</h3>
@@ -74,26 +77,26 @@
         <hr>
         <h3>Minimum Background Contrast Threshold</h3>
         <label for="weightMinimumLD">Luminance Difference to Background:</label>
-        <input type="range" id="weightMinimumLDId" name="weightMinimumLD" min="0" max="50" value="10"
+        <input type="range" id="weightMinimumLDId" name="weightMinimumLD" min="0" max="20" value="10"
             oninput="changeValueLD(this.value)">
         <label id="weightMinimumLDLabelId">10</label>
         <br>
         <hr>
         <h3>Optimization</h3>
-        <button onclick="reGenerate()">Re-generate</button>
-        <button onclick="showEnumeration()">Enumerating</button>
-        <!-- model selection -->
-        <fieldset style="margin-top: 5px;">
+        <button onclick="reGenerateFast()">Re-generate</button>
+        <!-- <button onclick="reGenerateQuality()">Re-generate(Better)</button> -->
+        <!-- blending model selection -->
+        <fieldset style="margin-top: 15px;">
             <legend>Model Selection</legend>
             <div>
                 <input type="radio" id="modelChoice1" name="model" value="standard" checked />
-                <label for="modelChoice1">Standard Color
-                    Blending&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <label for="modelChoice1">Standard Alpha
+                    Blending&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
             </div>
             <div>
                 <input type="radio" id="modelChoice2" name="model" value="local" />
                 <label for="modelChoice2">Local Color
-                    Blending&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                    Blending&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
             </div>
             <div>
                 <input type="radio" id="modelChoice3" name="model" value="hue" />
@@ -102,19 +105,35 @@
         </fieldset>
         <!-- color selection -->
         <fieldset>
+            <legend>Choosing Background Color</legend>
+            <input type="radio" id="bgChoice1" name="bg" value="white" checked />
+            <span style="width: 20px;height: 20px;background: rgb(255,255,255);display: inline-block;"></span>
+            <input type="radio" id="bgChoice2" name="bg" value="black" style="margin-left: 100px;" />
+            <span style="width: 20px;height: 20px;background: rgb(0,0,0);display: inline-block;"></span>
+        </fieldset>
+        <fieldset>
             <legend>Color Selection</legend>
-            <div id="usedColorsDiv"></div>
+            <div id="usedColorsDiv">
+                <input type="checkbox" name="selectAll" id="chooseAllColorId" onclick="chooseAll()">
+                <label for="selectAll">Select All</label>
+                <br>
+            </div>
         </fieldset>
         <br>
         <hr>
-        <h3>Manually Design Histogram</h3>
-        <button onclick="manipulateBar()">Manually Design</button>
-        <button onclick="confirmDesign()">Confirm Change</button>
-        <button onclick="saveTable()">Save data</button>
-        <div id="manipulateBarDiv"></div>
+        <h3>Input Data Illustration</h3>
+        <!-- <h4 id="diff-id">Difficulty = 0.00</h4> -->
+        <div id="inputDataDiv"></div>
+        <br>
+        <hr>
+
+        <div id="virtualDiv"></div>
+        <br>
+        <br>
+        <br>
     </div>
-    <div id="mainDiv" style="margin-left: 400px;"></div>
-    <div id="enumDiv" style="margin-left: 400px;"></div>
+    <div id="mainDiv" style="margin-left: 400px;margin-left: 500px;"></div>
+    <div id="enumDiv" style="margin-left: 400px;margin-left: 500px;"></div>
 </body>
 
 <script>
@@ -122,9 +141,58 @@
     // response for the html input
     // 
     //open file dialog to get the file name
-    function F_Open_dialog() {
-        let file_btn = document.getElementById("fileLoad");
-        file_btn.click();
+    ///    SVGWIDTH = 600
+    // svg_width = SVGWIDTH - svg_margin.left - svg_margin.right
+    //svg_height = SVGHEIGHT - svg_margin.top - svg_margin.bottom
+    let loadData = loadHist
+    // function F_Open_dialog(flag) {
+    //     switch (flag) {
+    //         case 0:
+    //             loadData = loadHist;
+    //             break;
+    //         case 1:
+    //             loadData = loadParallel;
+    //             break;
+    //         case 2:
+    //             loadData = loadHull;
+    //             break;
+    //         case 3:
+    //             loadData = loadVenn;
+    //             break;
+
+    //     }
+    //     let file_btn = document.getElementById("fileLoad");
+    //     file_btn.click();
+    // }
+    function F_Open_dialog(flag) {
+        switch (flag) {
+            case 0:
+                d3.text("./data/teaser.csv", function (error, text) {
+                    if (error) throw error;
+                    loadHist(text)
+                });
+                break;
+            case 1:
+                d3.text("./data/parallel-wang.csv", function (error, text) {
+                    if (error) throw error;
+                    loadParallel(text)
+                });
+                break;
+            case 2:
+                d3.text("./data/Cifar-10-4class.csv", function (error, text) {
+                    if (error) throw error;
+                    loadHull(text)
+                });
+                break;
+            case 3:
+                d3.text("./data/venn-diagrams.csv", function (error, text) {
+                    if (error) throw error;
+                    loadVenn(text)
+                });
+                break;
+
+        }
+
     }
 
     //used in website
@@ -149,8 +217,7 @@
         reader.readAsText(file);
     });
 
-    function loadData(text) {
-        d3.select("#status_running").text("Processing Data...")
+    function loadHist(text) {
         //parse pure text to data, and cast string to number
         let source_data = d3.csvParseRows(text)
         console.log("source_data", source_data);
@@ -164,164 +231,105 @@
                 }
             }
         }
+
         bars_num = hist_data[0].length
         axis_x_bandwidth = Math.floor(svg_width / bars_num)
-        svg_margin.left = svg_margin.right = (SVGWIDTH - axis_x_bandwidth * bars_num) / 2
+        svg_margin.left = svg_margin.right = Math.floor((SVGWIDTH - axis_x_bandwidth * bars_num) / 2)
         axis_y = d3.scaleLinear()
             .range([svg_height, 0])
             .domain([0, d3.max(hist_data, function (d) {
                 return d3.max(d)
             })]);
-        global_axis_pixels = {}
-        blended_colors_all = {}
-        prepareColorPixels(hist_data, renderHistComponent)
-        let nIntervId = setInterval(function () {
-            if (Object.keys(blended_colors_all).length != 0
-                && blended_colors_arr.length != 0
-                && Object.keys(pixels_num_weight).length != 0
-                && Object.keys(blended_colors_neighboring_relation).length != 0) {
-                clearInterval(nIntervId)
-                getUnrelatedColors(blended_colors_all)
-                reGenerate()
-                d3.select("#status_running").text("")
-            }
-        }, 500);
+
+        processHist()
     }
 
-    function exampleHist() {
-        d3.select("#status_running").text("Processing Data...")
-        d3.text("./data/penguins.csv", function (error, text) { //interleaved_100_200_10d_25_cramped_rotated-PCA
-            if (error) throw error;
-            //parse pure text to data, and cast string to number
-            let source_data = d3.csvParseRows(text)
-            console.log("source_data", source_data);
+    function loadParallel(text) {
+        //parse pure text to data, and cast string to number
+        let source_data = d3.csvParseRows(text)
+        console.log("source_data", source_data);
 
-            hist_data = []
-            for (let i = 0; i < source_data.length; i++) {
-                hist_data.push([])
-                for (let j = 0; j < source_data[i].length; j++) {
-                    if (source_data[i][j] != '') {
-                        hist_data[i].push(+source_data[i][j])
-                    }
-                }
-            }
-            bars_num = hist_data[0].length
-            axis_x_bandwidth = Math.floor(svg_width / bars_num)
-            axis_y = d3.scaleLinear()
-                .range([svg_height, 0])
-                .domain([0, d3.max(hist_data, function (d) {
-                    return d3.max(d)
-                })]);
-            global_axis_pixels = {}
-            blended_colors_all = {}
-            prepareColorPixels(hist_data, renderHistComponent)
-            let nIntervId = setInterval(function () {
-                if (Object.keys(blended_colors_all).length != 0
-                    && blended_colors_arr.length != 0
-                    && Object.keys(pixels_num_weight).length != 0
-                    && Object.keys(blended_colors_neighboring_relation).length != 0) {
-                    clearInterval(nIntervId)
-                    getUnrelatedColors(blended_colors_all)
-                    reGenerate()
-                    d3.select("#status_running").text("")
-                }
-            }, 500);
-        });
+        let tmp_hist_data = {}
+        axis_x_values = new Set()
+        for (let i = 0; i < source_data.length; i++) {
+            if (!tmp_hist_data[source_data[i][2]]) tmp_hist_data[source_data[i][2]] = []
+            tmp_hist_data[source_data[i][2]].push([+source_data[i][0], +source_data[i][1]])
+            axis_x_values.add(+source_data[i][0])
+        }
+        hist_data = new Array(Object.keys(tmp_hist_data).length)
+        for (let key in tmp_hist_data) {
+            hist_data[+key] = tmp_hist_data[key]
+        }
+        axis_x = d3.scaleLinear()
+            .range([0, svg_width])
+            .domain(d3.extent(source_data, function (d) {
+                return +d[0]
+            }));
+        axis_y = d3.scaleLinear()
+            .range([svg_height, 0])
+            .domain(d3.extent(source_data, function (d) {
+                return +d[1]
+            }));
+
+        processParallel()
     }
 
-    function exampleParallel() {
-        d3.select("#status_running").text("Processing Data...")
-        d3.text("./data/parallel-wang.csv", function (error, text) { //interleaved_100_200_10d_25_cramped_rotated-PCA
-            if (error) throw error;
-            //parse pure text to data, and cast string to number
-            let source_data = d3.csvParseRows(text)
-            console.log("source_data", source_data);
+    function loadHull(text) {
+        //parse pure text to data, and cast string to number
+        let source_data = d3.csvParseRows(text)
+        console.log("source_data", source_data);
 
-            let tmp_hist_data = {}
-            axis_x_values = new Set()
-            for (let i = 0; i < source_data.length; i++) {
-                if (!tmp_hist_data[source_data[i][2]]) tmp_hist_data[source_data[i][2]] = []
-                tmp_hist_data[source_data[i][2]].push([+source_data[i][0], +source_data[i][1]])
-                axis_x_values.add(+source_data[i][0])
-            }
-            hist_data = new Array(Object.keys(tmp_hist_data).length)
-            for (let key in tmp_hist_data) {
-                hist_data[+key] = tmp_hist_data[key]
-            }
-            axis_x = d3.scaleLinear()
-                .range([0, svg_width])
-                .domain(d3.extent(source_data, function (d) {
-                    return +d[0]
-                }));
-            axis_y = d3.scaleLinear()
-                .range([svg_height, 0])
-                .domain(d3.extent(source_data, function (d) {
-                    return +d[1]
-                }));
-            global_axis_pixels = {}
-            blended_colors_all = {}
-            prepareColorPixels(hist_data, renderParallelCoordinatesComponent)
-            getAxisPixels()
-            let nIntervId = setInterval(function () {
-                if (Object.keys(blended_colors_all).length != 0
-                    && blended_colors_arr.length != 0
-                    && Object.keys(pixels_num_weight).length != 0
-                    && Object.keys(blended_colors_neighboring_relation).length != 0
-                    && Object.keys(global_axis_pixels).length != 0) {
-                    clearInterval(nIntervId)
-                    getUnrelatedColors(blended_colors_all)
-                    reGenerate()
-                    d3.select("#status_running").text("")
-                }
-            }, 500);
-        });
+        let tmp_hist_data = {}, label_set = new Set
+        for (let i = 0; i < source_data.length; i++) {
+            if (!tmp_hist_data[source_data[i][2]]) tmp_hist_data[source_data[i][2]] = []
+            label_set.add(source_data[i][2])
+            tmp_hist_data[source_data[i][2]].push([+source_data[i][0], +source_data[i][1]])
+        }
+        let label_arr = Array.from(label_set)
+        hist_data = new Array(Object.keys(tmp_hist_data).length)
+        for (let key in tmp_hist_data) {
+            hist_data[label_arr.indexOf(key)] = d3.polygonHull(tmp_hist_data[key])
+        }
+
+        axis_x = d3.scaleLinear()
+            .range([0, svg_width])
+            .domain(d3.extent(source_data, function (d) {
+                return +d[0]
+            }));
+        axis_y = d3.scaleLinear()
+            .range([0, svg_height])
+            .domain(d3.extent(source_data, function (d) {
+                return +d[1]
+            }));
+
+        processHull()
     }
 
-    function exampleHull() {
-        d3.select("#status_running").text("Processing Data...")
-        d3.text("./data/Cifar-10-4class.csv", function (error, text) { //interleaved_100_200_10d_25_cramped_rotated-PCA
-            if (error) throw error;
-            //parse pure text to data, and cast string to number
-            let source_data = d3.csvParseRows(text)
-            console.log("source_data", source_data);
+    function loadVenn(text) {
+        //parse pure text to data, and cast string to number
+        let source_data = d3.csvParseRows(text)
+        console.log("source_data", source_data);
 
-            let tmp_hist_data = {}, label_set = new Set
-            for (let i = 0; i < source_data.length; i++) {
-                if (!tmp_hist_data[source_data[i][2]]) tmp_hist_data[source_data[i][2]] = []
-                label_set.add(source_data[i][2])
-                tmp_hist_data[source_data[i][2]].push([+source_data[i][0], +source_data[i][1]])
-            }
-            let label_arr = Array.from(label_set)
-            hist_data = new Array(Object.keys(tmp_hist_data).length)
-            for (let key in tmp_hist_data) {
-                hist_data[label_arr.indexOf(key)] = d3.polygonHull(tmp_hist_data[key])
-            }
-
-            axis_x = d3.scaleLinear()
-                .range([0, svg_width])
-                .domain(d3.extent(source_data, function (d) {
-                    return +d[0]
-                }));
-            axis_y = d3.scaleLinear()
-                .range([svg_height, 0])
-                .domain(d3.extent(source_data, function (d) {
-                    return +d[1]
-                }));
-            global_axis_pixels = {}
-            blended_colors_all = {}
-            prepareColorPixels(hist_data, renderParallelCoordinatesComponent)
-            let nIntervId = setInterval(function () {
-                if (Object.keys(blended_colors_all).length != 0
-                    && blended_colors_arr.length != 0
-                    && Object.keys(pixels_num_weight).length != 0
-                    && Object.keys(blended_colors_neighboring_relation).length != 0) {
-                    clearInterval(nIntervId)
-                    getUnrelatedColors(blended_colors_all)
-                    reGenerate()
-                    d3.select("#status_running").text("")
+        hist_data = []
+        for (let i = 0; i < source_data.length; i++) {
+            hist_data.push([])
+            for (let j = 0; j < source_data[i].length; j++) {
+                if (source_data[i][j] != '') {
+                    hist_data[i].push(+source_data[i][j])
                 }
-            }, 500);
-        });
+            }
+        }
+
+        bars_num = hist_data[0].length
+        axis_x_bandwidth = Math.floor(svg_width / bars_num)
+        svg_margin.left = svg_margin.right = Math.floor((SVGWIDTH - axis_x_bandwidth * bars_num) / 2)
+        axis_y = d3.scaleLinear()
+            .range([svg_height, 0])
+            .domain([0, d3.max(hist_data, function (d) {
+                return d3.max(d)
+            })]);
+
+        processVenn()
     }
 
     function changeValue(v) {
@@ -357,19 +365,55 @@
         }
     });
 
-    for (let i = 0; i < 8; i++) {
-        d3.select("#usedColorsDiv").append("input")
+    d3.selectAll("input[name='bg']").on("change", function () {
+        switch (this.value) {
+            case "white":
+                background_color = [255, 255, 255, 1]
+                break;
+            case "black":
+                background_color = [0, 0, 0, 1]
+                break;
+        }
+    });
+
+    function addColorOptions(palette, text, visible = false, num = palette.length) {
+        let div_main = d3.select("#usedColorsDiv").append("div")
+        div_main.append("input")
             .attr("type", "checkbox")
-            .attr("checked", true)
-            .attr("value", Tableau_10_palette[i])
-            .style("margin-left", "10px")
-        d3.select("#usedColorsDiv").append("span")
-            .style("width", "20px").style("height", "20px").style("display", "inline-block")
-            .style("background", Tableau_10_palette[i])
+            .property("checked", visible)
+            .on("click", function () {
+                if (!d3.select(this)._groups[0][0].checked) {
+                    d3.select("#usedColorsDiv").selectAll("input.colorOptions#" + text).property("checked", false)
+                } else {
+                    d3.select("#usedColorsDiv").selectAll("input.colorOptions#" + text).property("checked", true)
+                }
+            })
+        div_main.append("label").text(text).style("display", "inline-block").style("width", "80px")
+        for (let i = 0; i < num; i++) {
+            let div = div_main.append("div").style("display", "inline-block")
+            div.append("input")
+                .attr("type", "checkbox")
+                .attr("class", "colorOptions")
+                .attr("id", text)
+                .property("checked", visible)
+                .attr("value", palette[i])
+                .style("margin-left", "10px")
+            div.append("span")
+                .style("width", "20px").style("height", "20px").style("display", "inline-block")
+                .style("background", palette[i])
+        }
     }
+    addColorOptions(Tableau_10_palette, "Tableau", false, 8)
+    let colorgorical_palette = ["#88e99a", "#b427b7", "#528efb", "#f3c5fa", "#2c4a5e", "#27cae6", "#6c2c76", "#50a33b"]
+    addColorOptions(colorgorical_palette, "Colorgorical")
+    let brewer_palette = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf']
+    addColorOptions(brewer_palette, "ColorBrewer")
+    // let pure_color_palette = [d3.rgb(255, 0, 0), d3.rgb(0, 255, 0), d3.rgb(0, 0, 255), d3.rgb(255, 255, 0), d3.rgb(255, 0, 255), d3.rgb(0, 255, 255), d3.rgb(255, 255, 255), d3.rgb(0, 0, 0)]
+    // addColorOptions(pure_color_palette, "Pure")
+
     function getInputColors(clusterNum) {
         let input_colors = [];
-        let inputs = d3.select("#usedColorsDiv").selectAll("input");
+        let inputs = d3.select("#usedColorsDiv").selectAll("input.colorOptions");
         inputs.each(function () {
             // console.log(d3.select(this)._groups[0][0].value, d3.select(this)._groups[0][0].checked);
             if (d3.select(this)._groups[0][0].checked) {
@@ -379,87 +423,17 @@
         return input_colors
     }
 
-
-    function manipulateBar() {
-        if (!hist_data || hist_data.length === 0) { return }
-        d3.selectAll("#manipulateBarDiv").selectAll("*").remove()
-        let bar_last_coords, klass;
-        var drag = d3.drag()
-            .on("start", dragStart)
-            .on("end", dragEnd)
-            .on("drag", dragMove);
-
-        function dragStart() {
-            bar_last_coords = d3.mouse(this);
-            klass = d3.select(this);
+    function chooseAll() {
+        if (!d3.select("#chooseAllColorId")._groups[0][0].checked) {
+            d3.select("#usedColorsDiv").selectAll("input").property("checked", false)
+        } else {
+            d3.select("#usedColorsDiv").selectAll("input").property("checked", true)
         }
 
-        function dragMove() {
-            var coords = d3.mouse(this);
-            var offset = [coords[0] - bar_last_coords[0], coords[1] - bar_last_coords[1]];
-            let pos = +klass.attr('y') + offset[1] / 2
-            pos = (pos < 0) ? 0 : pos;
-            pos = (pos > svg_height) ? svg_height : pos;
-            let m = +klass.attr("id").split("-")[1], n = +klass.attr("id").split("-")[2]
-            hist_data[m][n] = axis_y.invert(pos)
-            klass.attr("y", pos)
-                .attr("height", svg_height - pos);
-
-            bar_last_coords = coords;
-        }
-
-        function dragEnd() {
-
-        }
-
-        let traditionalSvg = d3.selectAll("#manipulateBarDiv").append("svg").attr("width", SVGWIDTH)
-            .attr("height", SVGHEIGHT)
-            .style("background-color", "rgba(" + background_color.join(",") + ")")
-        // .style("margin-left", "20px")//.style("border", "1px solid #444444");
-        let tmp = traditionalSvg.append("g")
-            .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")")
-
-        let used_colors = []
-        for (let i = 0; i < hist_data.length; i++) {
-            let c = d3.rgb(Tableau_10_palette[i])
-            used_colors.push([c.r, c.g, c.b, 0.5])
-        }
-        for (let m = 0; m < hist_data.length; m++) {
-            for (let n = 0; n < hist_data[m].length; n++) {
-                tmp.append("rect")
-                    .attr("class", "bar")
-                    .attr("id", "hist-" + m + "-" + n)
-                    // .attr("fill", "rgba(" + colors[+used_color[m]].join(',') + "," + opacities[m] + ")")
-                    .attr("fill", "rgba(" + used_colors[m].join(',') + ")")
-                    .attr("x", n * axis_x_bandwidth)
-                    .attr("width", axis_x_bandwidth)
-                    .attr("y", axis_y(hist_data[m][n]))
-                    .attr("height", svg_height - axis_y(hist_data[m][n]))
-                    .call(drag)
-            }
-        }
     }
 
-    function confirmDesign() {
-        d3.select("#status_running").text("Processing Data...")
-        global_axis_pixels = {}
-        blended_colors_all = {}
-        prepareColorPixels(hist_data, renderHistComponent)
-        let nIntervId = setInterval(function () {
-            if (Object.keys(blended_colors_all).length != 0
-                && blended_colors_arr.length != 0
-                && Object.keys(pixels_num_weight).length != 0
-                && Object.keys(blended_colors_neighboring_relation).length != 0) {
-                clearInterval(nIntervId)
-                getUnrelatedColors(blended_colors_all)
-                reGenerate()
-                d3.select("#status_running").text("")
-            }
-        }, 500);
-    }
 
     function reGenerate() {
-        d3.selectAll("#mainDiv").selectAll("*").remove()
         // get weightings
         let cluster_num = hist_data.length
         for (let i = 0; i < weight_global.length; i++) {
@@ -467,11 +441,10 @@
         }
         // get input colors
         let input_colors = getInputColors()
-        if (input_colors.length < cluster_num) {
-            alert("Please select enough colors!")
-            return
-        }
-
+        // if (input_colors.length < cluster_num) {
+        //     alert("Please select enough colors!")
+        //     return
+        // }
         let orders = Array.from(new Array(cluster_num).keys())
         let solution = { palette: [], order: orders }
         let used_colors = []
@@ -479,186 +452,63 @@
             let c = d3.rgb(input_colors[i])
             used_colors.push([c.r, c.g, c.b, 0.5])
         }
+        console.log("used_colors", used_colors);
+
         solution.palette = used_colors.slice(0, cluster_num)
-        // used_colors = [[160, 160, 160, 1], [160, 160, 160, 0], [160, 160, 160, 0], [160, 160, 160, 0]]
-        // used_colors = [[0, 255, 0, 0.78], [255, 0, 0, 0.37], [0, 0, 255, 0.28]] // algorithm illustration
-        // //fig1
-        // used_colors = [[225, 87, 89, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
-        // used_colors = [[225, 87, 89, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
-        // used_colors = [[225, 87, 89, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
-        // used_colors = [[237, 201, 72, 0.69], [225, 87, 89, 0.29], [78, 121, 167, 0.30]]
-        // used_colors = [[237, 201, 72, 0.77], [78, 121, 167, 0.38], [225, 87, 89, 0.33]]
-        // used_colors = [[237, 201, 72, 0.80], [225, 87, 89, 0.54], [78, 121, 167, 0.36]]
-        
-        // //fig1 - new
-        // used_colors = [[237, 201, 72, 0.5], [225, 87, 89, 0.5], [78, 121, 167, 0.5]]
-        // used_colors = [[237, 201, 72, 0.5], [225, 87, 89, 0.5], [78, 121, 167, 0.5]]
-        // used_colors = [[237, 201, 72, 0.5], [225, 87, 89, 0.5], [78, 121, 167, 0.5]]
-        // used_colors = [[225, 87, 89, 0.59], [237, 201, 72, 0.55], [78, 121, 167, 0.30]]
-        // used_colors = [[237, 201, 72, 0.77], [78, 121, 167, 0.38], [225, 87, 89, 0.33]]
-        // used_colors = [[237, 201, 72, 0.80], [225, 87, 89, 0.54], [78, 121, 167, 0.36]]
-
-        // //fig3
-        // used_colors = [[242, 142, 43, 0.50], [237, 201, 72, 0.50], [78, 121, 167, 0.50]]
-        // used_colors = [[242, 142, 43, 0.80], [237, 201, 72, 0.62], [78, 121, 167, 0.44]]
-        // used_colors = [[78, 121, 167, 0.50], [242, 142, 43, 0.50], [237, 201, 72, 0.50]]
-        // used_colors = [[242, 142, 43, 0.76], [78, 121, 167, 0.38], [237, 201, 72, 0.47]]
-        
-        // //fig4
-        // used_colors = [[89, 161, 79, 0.34], [78, 121, 167, 0.29], [118, 183, 178, 0.41]]
-        // used_colors = [[89, 161, 79, 0.81], [78, 121, 167, 0.77], [225, 87, 89, 0.49]]
-        // used_colors = [[78, 121, 167, 0.79], [225, 87, 89, 0.39], [89, 161, 79, 0.31]]
-        // used_colors = [[89, 161, 79, 0.75], [237, 201, 72, 0.56], [78, 121, 167, 0.24]]
-
-        // solution.palette = used_colors
 
         let div = d3.select("#mainDiv")
         let opacityDiv
-        div.append("h2").text(curr_blending_method)
-        opacityDiv = div.append("div").attr("id", "opacity5").style("display", "inline-block")
-        let score = getPaletteScore(solution.palette, solution.order)
-        opacityDiv.append("h2").text("Fixed Color Assignment & Opacity, score = " + score.toFixed(2))
-        if (Object.keys(global_axis_pixels).length != 0)
-            getAxisColors(solution.palette, solution.order)
-        renderingPixels(blended_colors_all, opacityDiv)
-        showOptimizedColors(solution.palette, opacityDiv)
+        // changing assignment and depth, without changing color
+        if (input_colors.length > cluster_num) {
+            optimizeColorSign = -0.5
 
-        solution = simulatedAnnealing(hist_data, used_colors, orders)
-        opacityDiv = div.append("div").attr("id", "opacityDiv").style("display", "inline-block").style("margin-left", "30px")
-        opacityDiv.append("h2").text("Optimal Color Assignment & Opacity, score= " + solution.score.toFixed(2))
-        score = getPaletteScore(solution.palette, solution.order)
-        if (Object.keys(global_axis_pixels).length != 0)
-            getAxisColors(solution.palette, solution.order)
-        renderingPixels(blended_colors_all, opacityDiv)
-        showOptimizedColors(solution.palette, opacityDiv)
+            solution = simulatedAnnealing(hist_data, used_colors, orders)
+            opacityDiv = div.append("div").attr("id", "depthDiv").style("display", "inline-block").style("margin-left", "30px")
+            opacityDiv.append("h2").text("Optimal Color Assignment & Opacity & Depth, score= " + solution.score.toFixed(2))
+            score = getPaletteScore(solution.palette, solution.order)
+            if (Object.keys(global_axis_pixels).length != 0)
+                getAxisColors(solution.palette, solution.order)
+            renderingPixels(blended_colors_all, opacityDiv)
+            showOptimizedColors(solution.palette, solution.order, opacityDiv)
+        } else {
+            // changing depth and color
+            optimizeColorSign = 1.5
+
+            solution = simulatedAnnealing(hist_data, [], orders)
+            opacityDiv = div.append("div").attr("id", "depthDiv").style("display", "inline-block").style("margin-left", "30px")
+            opacityDiv.append("h2").text("Optimal Colorization & Depth, score= " + solution.score.toFixed(2))
+            score = getPaletteScore(solution.palette, solution.order)
+            if (Object.keys(global_axis_pixels).length != 0)
+                getAxisColors(solution.palette, solution.order)
+            renderingPixels(blended_colors_all, opacityDiv)
+            showOptimizedColors(solution.palette, solution.order, opacityDiv)
+        }
 
         div.append("hr")
         div.append("br")
         div.append("hr")
     }
 
-    let global_result, global_results
-    function doExchange(arr, depth) {
-        for (var i = 0; i < arr[depth].length; i++) {
-            global_result[depth] = arr[depth][i]
-            if (depth != arr.length - 1) {
-                doExchange(arr, depth + 1)
-            } else {
-                global_results.push(global_result.slice())
-            }
-        }
-    }
-
-    function showEnumeration() {
-        d3.selectAll("#enumDiv").selectAll("*").remove()
-        let div = d3.select("#enumDiv")
-        let cluster_num = hist_data.length
-        // get input colors
-        let input_colors = getInputColors()
-        if (input_colors.length < cluster_num) {
-            alert("Please select enough colors!")
-            return
-        }
-
-        let orders = Array.from(new Array(cluster_num).keys())
-        let solution = { palette: [], order: orders }
-        let used_colors = []
-        for (let i = 0; i < hist_data.length; i++) {
-            let c = d3.rgb(input_colors[i])
-            solution.palette.push([c.r, c.g, c.b, 0.5])
-        }
-
-
-        d3.select("#status_running").text("running...")
-        setTimeout(function () {
-            let permutation_orders = queue(orders, cluster_num)
-            console.log("all rendering orders: ", permutation_orders)
-            permutation_orders = [orders]
-
-            let permutation_colors = queue(input_colors, cluster_num)
-            console.log("all color combinations: ", permutation_colors)
-
-            let results = []
-            let opacities = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-            // opacities = [0.5]
-            let weight_a = 0.5
-            let opacity_settings = []
-            for (let i = 0; i < cluster_num; i++) {
-                opacity_settings.push(opacities.slice())
-            }
-            global_result = [], global_results = []
-            doExchange(opacity_settings, 0);
-            console.log("opacity_settings", global_results);
-            for (let i = 0; i < global_results.length; i++) {
-                for (let p = 0; p < permutation_orders.length; p++) {
-                    let perm = permutation_orders[p]
-                    for (let q = 0; q < permutation_colors.length; q++) {
-                        let solution = { palette: [], order: perm.slice() }
-                        let opa = global_results[i]
-                        for (let m = 0; m < hist_data.length; m++) {
-                            let c = d3.rgb(permutation_colors[q][m])
-                            solution.palette.push([c.r, c.g, c.b, opa[m]])
-                        }
-                        let score = getPaletteScore(solution.palette, solution.order, weight_a)
-                        results.push([solution, score])
-                    }
-                }
-            }
-
-            results.sort((a, b) => b[1] - a[1])
-
-            let best_div
-            // div.append("hr")
-            // div.append("h1").on("click", function () {
-            //     if (worst_div.style("display") == 'none')
-            //         worst_div.style("display", "inline-block")
-            //     else
-            //         worst_div.style("display", "none")
-            // })
-            //     .text("Worst : ")
-            // worst_div = div.append("div").style("display", "inline-block").style("margin-left", "10px")
-
-            // let opacityDiv, count = 0
-            // for (let i = 0; i < results.length; i++) {
-            //     if (results[i][1] < -100) continue
-            //     if (count >= 10) break
-            //     count++
-            //     if (i > results.length - 1) break
-            //     opacityDiv = worst_div.append("div").style("display", "inline-block").style("margin-left", "10px")
-            //     opacityDiv.append("h2").text("score = " + results[i][1].toFixed(2))
-            //     // opacityDiv.append("h3").text(results[i][0].palette[0].join(", ") + " x " + results[i][0].palette[1].join(", ") + " x " + results[i][0].palette[2].join(", "))
-            //     getPaletteScore(results[i][0].palette, results[i][0].order)
-            //     renderingPixels(blended_colors_all, opacityDiv)
-            //     showOptimizedColors(results[i][0].palette, opacityDiv)
-            // }
-            // div.append("hr")
-            div.append("h1").on("click", function () {
-                if (best_div.style("display") == 'none')
-                    best_div.style("display", "inline-block")
-                else
-                    best_div.style("display", "none")
-            })
-                .text("Best 10 Results: ")
-            best_div = div.append("div").style("display", "inline-block").style("margin-left", "10px")
-            let count = 0, exist_colors = []
-            for (let i = 0; i < results.length; i++) {
-                let index = results.length - 1 - i
-                if (count >= 10) break
-                let key = results[i][0].palette.map(d => d.slice(0, 3)).join("-")
-                if (exist_colors.indexOf(key) != -1) {
-                    continue
-                }
-                exist_colors.push(key)
-                count++
-                opacityDiv = best_div.append("div").style("display", "inline-block").style("margin-left", "10px")
-                opacityDiv.append("h2").text("score = " + results[i][1].toFixed(2))
-                getPaletteScore(results[i][0].palette, results[i][0].order)
-                renderingPixels(blended_colors_all, opacityDiv)
-                showOptimizedColors(results[i][0].palette, opacityDiv)
-            }
+    function reGenerateFast() {
+        d3.selectAll("#mainDiv").selectAll("*").remove()
+        d3.select("#status_running").text("Optimizing...")
+        setTimeout(() => {
+            dec_factor = 0.99
+            reGenerate()
             d3.select("#status_running").text("")
-        }, 500)
+        }, 100)
     }
+
+    function reGenerateQuality() {
+        d3.selectAll("#mainDiv").selectAll("*").remove()
+        d3.select("#status_running").text("Optimizing...")
+        setTimeout(() => {
+            dec_factor = 0.995
+            reGenerate()
+            d3.select("#status_running").text("")
+        }, 100)
+    }
+
 
 </script>
 

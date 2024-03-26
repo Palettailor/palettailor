@@ -231,6 +231,79 @@ function wangLocalSolution(c1, c2) {
     return color
 }
 
+/**
+ * get the max x-axis length for given color pixels
+ */
+function getMaxLength(pixels) {
+    let x_arr = new Array(SVGWIDTH + 1).fill(0)
+    for (let i = 0; i < pixels.length; i++) {
+        x_arr[pixels[i][1]] = 1
+    }
+    let all_length_arr = [],
+        start = -1, end = -1
+    for (let i = 0; i < x_arr.length - 1; i++) {
+        if (x_arr[i] === 0) {
+            start = -1
+            end = -1
+            continue
+        }
+        if (start === -1) {
+            start = i
+        }
+        if (x_arr[i + 1] === 0) {
+            end = i
+            all_length_arr.push([start, end])
+        }
+    }
+    console.log(all_length_arr);
+    // calculate the size of each area
+    let area_arr = new Array(all_length_arr.length)
+    for (let i = 0; i < all_length_arr.length; i++) {
+        area_arr[i] = []
+        for (let j = 0; j < pixels.length; j++) {
+            if (pixels[j][1] >= all_length_arr[i][0] && pixels[j][1] <= all_length_arr[i][1]) {
+                area_arr[i].push(pixels[j])
+            }
+        }
+    }
+    console.log(area_arr);
+    // return the max size
+    let max_size = area_arr[0].length
+    for (let i = 1; i < area_arr.length; i++) {
+        if (max_size < area_arr[i].length) {
+            max_size = area_arr[i].length
+        }
+    }
+    return max_size
+}
+
+/**
+ * get overlapping size of each class
+ * get blended colors number of each class
+ */
+function getDifficultyWeight(pixel_info) {
+    overlap_size_arr = {}, blended_num_arr = {}
+    let tmp_len_arr = []
+    for (let key in pixel_info) {
+        if (key.length === 1) {
+            let total_size = 0
+            overlap_size_arr[key] = 0
+            tmp_len_arr.push(blended_colors_arr[+key].length)
+            for (let i = 0; i < blended_colors_arr[+key].length; i++) {
+                total_size += pixel_info[blended_colors_arr[+key][i]].length
+                if (blended_colors_arr[+key][i].length > 1) {
+                    overlap_size_arr[key] += pixel_info[blended_colors_arr[+key][i]].length
+                }
+            }
+            overlap_size_arr[key] /= total_size
+        }
+    }
+    let max_len = d3.max(tmp_len_arr)
+    for (let i = 0; i < blended_colors_arr.length; i++) {
+        blended_num_arr[blended_colors_arr[i][0]] = blended_colors_arr[i].length / max_len
+    }
+    console.log("overlap_size_arr:", overlap_size_arr, "blended_num_arr:", blended_num_arr);
+}
 
 /** process pixels **/
 
@@ -258,7 +331,8 @@ function processPixelArray(cluster_num, pixel_arr) {
             blended_colors_all[key] = undefined
 
             if (!pixels_num_arr[key]) pixels_num_arr[key] = []
-            pixels_num_arr[key].push([(+y) / bars_num, (+x) / svg_height])
+            // pixels_num_arr[key].push([(+y) / bars_num, (+x) / svg_height])
+            pixels_num_arr[key].push([(+y), (+x)])
             pixel_sum++
 
             // get the neighborhood of each color
@@ -331,6 +405,8 @@ function processPixelArray(cluster_num, pixel_arr) {
     // }
 
     pixels_num_weight = {}
+    let blended_colors_pixels_count = 0
+    let max_size_arr = []
     for (let key in pixels_num_arr) {
         if (pixels_num_arr[key].length < 10) {
             let str = {}
@@ -341,8 +417,17 @@ function processPixelArray(cluster_num, pixel_arr) {
             // removeKey(key)
         }
         pixels_num_weight[key] = pixels_num_arr[key].length / pixel_sum
-    }
+        if (key.length > 1) {
+            blended_colors_pixels_count += pixels_num_arr[key].length
 
+            console.log(key + ":");
+            max_size_arr.push(getMaxLength(pixels_num_arr[key]))
+        }
+    }
+    console.log("Difficulty", blended_colors_pixels_count / pixel_sum);
+    d3.select("#diff-id").text("Size Difficulty = " + (blended_colors_pixels_count / pixel_sum).toFixed(2) + " , " + d3.max(max_size_arr))
+
+    getDifficultyWeight(pixels_num_arr)
 
     blended_colors_all["bgColor"] = [255, 255, 255, 1]
     console.log("blended_colors_arr", blended_colors_arr);
@@ -356,7 +441,7 @@ function processPixelArray(cluster_num, pixel_arr) {
 function renderHistComponent(id, histData, image_data, color) {
     let svgId = "svg-" + id
     let canvasId = "canvas-" + id
-    let svg = d3.select("#manipulateBarDiv").append("svg").attr("id", svgId)
+    let svg = d3.select("#virtualDiv").append("svg").attr("id", svgId)
         .attr("width", SVGWIDTH)
         .attr("height", SVGHEIGHT)
         .style("background-color", "rgba(" + background_color.join(",") + ")")//.style("margin-left", "10px")
@@ -373,7 +458,7 @@ function renderHistComponent(id, histData, image_data, color) {
             .attr("height", svg_height - axis_y(histData[0][n]))
     }
 
-    d3.select("#manipulateBarDiv").append("canvas").attr("id", canvasId)
+    d3.select("#virtualDiv").append("canvas").attr("id", canvasId)
         .attr("width", SVGWIDTH).attr("height", SVGHEIGHT) //.attr("style", "display:none");
 
     let image = new Image;
@@ -393,8 +478,100 @@ function renderHistComponent(id, histData, image_data, color) {
         //get pixels image
         let context = document.getElementById(canvasId).getContext('2d');
         image_data[id] = context.getImageData(0, 0, context.canvas.width, context.canvas.height).data;
-        d3.select("#manipulateBarDiv").select("#" + canvasId).remove()
-        d3.select("#manipulateBarDiv").select("#" + svgId).remove()
+        d3.select("#virtualDiv").select("#" + canvasId).remove()
+        d3.select("#virtualDiv").select("#" + svgId).remove()
+        // console.log(id, data, image_data, color);
+    }
+    // set it as the source of the img element
+    image.src = image64;
+
+}
+
+function renderCircleComponent(id, histData, image_data, color) {
+    let svgId = "svg-" + id
+    let canvasId = "canvas-" + id
+    let svg = d3.select("#virtualDiv").append("svg").attr("id", svgId)
+        .attr("width", SVGWIDTH)
+        .attr("height", SVGHEIGHT)
+        .style("background-color", "rgba(" + background_color.join(",") + ")")//.style("margin-left", "10px")
+    let standard_result_svg_group = svg.append("g")
+    // .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")")
+
+    standard_result_svg_group.append("circle")
+        .attr("fill", "rgba(" + color.join(',') + ")")
+        .attr("cx", histData[0][0])
+        .attr("cy", histData[0][1])
+        .attr("r", histData[0][2])
+
+    d3.select("#virtualDiv").append("canvas").attr("id", canvasId)
+        .attr("width", SVGWIDTH).attr("height", SVGHEIGHT) //.attr("style", "display:none");
+
+    let image = new Image;
+    // get svg data
+    var xml = new XMLSerializer().serializeToString(svg._groups[0][0]);
+
+    // make it base64
+    var svg64 = btoa(xml);
+    var b64Start = 'data:image/svg+xml;base64,';
+
+    // prepend a "header"
+    var image64 = b64Start + svg64;
+
+    image.onload = function () {
+        // draw the image onto the canvas
+        document.getElementById(canvasId).getContext('2d').drawImage(image, 0, 0);
+        //get pixels image
+        let context = document.getElementById(canvasId).getContext('2d');
+        image_data[id] = context.getImageData(0, 0, context.canvas.width, context.canvas.height).data;
+        d3.select("#virtualDiv").select("#" + canvasId).remove()
+        d3.select("#virtualDiv").select("#" + svgId).remove()
+        // console.log(id, data, image_data, color);
+    }
+    // set it as the source of the img element
+    image.src = image64;
+
+}
+
+function renderEllipseComponent(id, histData, image_data, color) {
+    let svgId = "svg-" + id
+    let canvasId = "canvas-" + id
+    let svg = d3.select("#virtualDiv").append("svg").attr("id", svgId)
+        .attr("width", SVGWIDTH)
+        .attr("height", SVGHEIGHT)
+        .style("background-color", "rgba(" + background_color.join(",") + ")")//.style("margin-left", "10px")
+    let standard_result_svg_group = svg.append("g")
+    // .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")")
+
+    standard_result_svg_group.append("ellipse")
+        .attr("fill", "rgba(" + color.join(',') + ")")
+        .attr("cx", histData[0][0])
+        .attr("cy", histData[0][1])
+        .attr("rx", histData[0][2])
+        .attr("ry", histData[0][3])
+        .attr("transform", `rotate(${histData[0][4]}, ${histData[0][0]}, ${histData[0][1]})`)
+
+    d3.select("#virtualDiv").append("canvas").attr("id", canvasId)
+        .attr("width", SVGWIDTH).attr("height", SVGHEIGHT) //.attr("style", "display:none");
+
+    let image = new Image;
+    // get svg data
+    var xml = new XMLSerializer().serializeToString(svg._groups[0][0]);
+
+    // make it base64
+    var svg64 = btoa(xml);
+    var b64Start = 'data:image/svg+xml;base64,';
+
+    // prepend a "header"
+    var image64 = b64Start + svg64;
+
+    image.onload = function () {
+        // draw the image onto the canvas
+        document.getElementById(canvasId).getContext('2d').drawImage(image, 0, 0);
+        //get pixels image
+        let context = document.getElementById(canvasId).getContext('2d');
+        image_data[id] = context.getImageData(0, 0, context.canvas.width, context.canvas.height).data;
+        d3.select("#virtualDiv").select("#" + canvasId).remove()
+        d3.select("#virtualDiv").select("#" + svgId).remove()
         // console.log(id, data, image_data, color);
     }
     // set it as the source of the img element
@@ -427,11 +604,37 @@ function getBezierPoints(num = 100, p1, cp, p2) {
     return points;
 }
 
-function renderParallelCoordinatesComponent(id, data, image_data, color) {
+function transferToBezierCurve(case_data) {
+    let case_data_arr = []
+    for (let j = 0; j < case_data.length; j++) {
+        case_data_arr[j] = []
+        let end_point = parseInt(case_data[j].length / 2)
+        for (let i = 0; i < case_data[j].length; i++) {
+            let offset = Math.abs(case_data[j][i][1] - case_data[j][case_data[j].length - 1 - i][1])
+            if (i === 0 || i === end_point) {
+                case_data_arr[j].push([case_data[j][i][0], case_data[j][i][1]])
+            } else if (i < end_point) {
+                let data = getBezierPoints(10, case_data[j][i - 1], [(case_data[j][i - 1][0] + case_data[j][i][0]) / 2, (case_data[j][i - 1][1] + case_data[j][i][1]) / 2 - offset * 0.5], case_data[j][i])
+                for (let d of data) {
+                    case_data_arr[j].push(d)
+                }
+            } else {
+                let data = getBezierPoints(10, case_data[j][i - 1], [(case_data[j][i - 1][0] + case_data[j][i][0]) / 2, (case_data[j][i - 1][1] + case_data[j][i][1]) / 2 + offset * 0.5], case_data[j][i])
+                for (let d of data) {
+                    case_data_arr[j].push(d)
+                }
+            }
+        }
+        case_data_arr[j].push([case_data[j][0][0], case_data[j][0][1]])
+    }
+    return case_data_arr
+}
+
+function renderParallelCoordinatesComponent(id, data, image_data, color, flag = true) {
     const curve = d3.line().curve(d3.curveLinear);
     let svgId = "svg-" + id
     let canvasId = "canvas-" + id
-    let svg = d3.select("#manipulateBarDiv").append("svg").attr("id", svgId)
+    let svg = d3.select("#virtualDiv").append("svg").attr("id", svgId)
         .attr("width", SVGWIDTH)
         .attr("height", SVGHEIGHT)
         .style("background-color", "rgba(" + background_color.join(",") + ")")//.style("margin-left", "10px")
@@ -439,29 +642,10 @@ function renderParallelCoordinatesComponent(id, data, image_data, color) {
         .attr("transform", "translate(" + svg_margin.left + "," + svg_margin.top + ")")
 
     let case_data = data
-    let case_data_arr = []
-    for (let j = 0; j < case_data.length; j++) {
-        case_data_arr[j] = []
-        let end_point = parseInt(case_data[j].length / 2)
-        for (let i = 0; i < case_data[j].length; i++) {
-            if (i === 0 || i === end_point) {
-                case_data_arr[j].push([case_data[j][i][0], case_data[j][i][1]])
-            } else if (i < end_point) {
-                let data = getBezierPoints(10, case_data[j][i - 1], [(case_data[j][i - 1][0] + case_data[j][i][0]) / 2, (case_data[j][i - 1][1] + case_data[j][i][1]) / 2 - 0.2], case_data[j][i])
-                for (let d of data) {
-                    case_data_arr[j].push(d)
-                }
-            } else {
-                let data = getBezierPoints(10, case_data[j][i - 1], [(case_data[j][i - 1][0] + case_data[j][i][0]) / 2, (case_data[j][i - 1][1] + case_data[j][i][1]) / 2 + 0.2], case_data[j][i])
-                for (let d of data) {
-                    case_data_arr[j].push(d)
-                }
-            }
-        }
-    }
-
+    if (flag)
+        case_data = transferToBezierCurve(data)
     standard_result_svg_group.selectAll("path")
-        .data(case_data_arr).enter()
+        .data(case_data).enter()
         .append('path')
         .attr("d", function (d) {
             let p = d.map(function (v) {
@@ -471,7 +655,7 @@ function renderParallelCoordinatesComponent(id, data, image_data, color) {
         })
         .attr("fill", "rgba(" + color.join(",") + ")")
 
-    d3.select("#manipulateBarDiv").append("canvas").attr("id", canvasId)
+    d3.select("#virtualDiv").append("canvas").attr("id", canvasId)
         .attr("width", SVGWIDTH).attr("height", SVGHEIGHT) //.attr("style", "display:none");
 
     let image = new Image;
@@ -491,8 +675,8 @@ function renderParallelCoordinatesComponent(id, data, image_data, color) {
         //get pixels image
         let context = document.getElementById(canvasId).getContext('2d');
         image_data[id] = context.getImageData(0, 0, context.canvas.width, context.canvas.height).data;
-        d3.select("#manipulateBarDiv").select("#" + canvasId).remove()
-        d3.select("#manipulateBarDiv").select("#" + svgId).remove()
+        d3.select("#virtualDiv").select("#" + canvasId).remove()
+        d3.select("#virtualDiv").select("#" + svgId).remove()
     }
     // set it as the source of the img element
     image.src = image64;
@@ -502,7 +686,7 @@ function renderParallelCoordinatesComponent(id, data, image_data, color) {
 function getAxisPixels() {
     let svgId = "svg-axispixel"
     let canvasId = "canvas-axispixel"
-    let svg = d3.select("#manipulateBarDiv").append("svg").attr("id", svgId)
+    let svg = d3.select("#virtualDiv").append("svg").attr("id", svgId)
         .attr("width", SVGWIDTH)
         .attr("height", SVGHEIGHT)
         .style("background-color", "rgba(" + background_color.join(",") + ")")//.style("margin-left", "10px")
@@ -514,12 +698,12 @@ function getAxisPixels() {
             .style("stroke", "black")
             .style("stroke-width", 1)
             .attr("x1", axis_x(i))
-            .attr("y1", axis_y(0))
+            .attr("y1", axis_y(axis_y.domain()[0]))
             .attr("x2", axis_x(i))
-            .attr("y2", axis_y(1));
+            .attr("y2", axis_y(axis_y.domain()[1]));
     }
 
-    d3.select("#manipulateBarDiv").append("canvas").attr("id", canvasId)
+    d3.select("#virtualDiv").append("canvas").attr("id", canvasId)
         .attr("width", SVGWIDTH).attr("height", SVGHEIGHT) //.attr("style", "display:none");
 
     let image = new Image;
@@ -560,8 +744,8 @@ function getAxisPixels() {
                 // }
             }
         }
-        d3.select("#manipulateBarDiv").select("#" + canvasId).remove()
-        d3.select("#manipulateBarDiv").select("#" + svgId).remove()
+        d3.select("#virtualDiv").select("#" + canvasId).remove()
+        d3.select("#virtualDiv").select("#" + svgId).remove()
         // console.log(id, data, image_data, color);
     }
     // set it as the source of the img element
@@ -590,13 +774,13 @@ function getAxisColors(palette, order) {
     background_color = tmp
 }
 
-function prepareColorPixels(chartData, renderMethod) {
+function prepareColorPixels(chartData, renderMethod, flag = true) {
     let cluster_num = chartData.length;
     // get distribution data for each class
     let image_data = new Array(cluster_num)
     for (let i = 0; i < cluster_num; i++) {
         let c = d3.rgb(Tableau_10_palette[i])
-        renderMethod(i, [chartData[i]], image_data, [c.r, c.g, c.b, 0.5])
+        renderMethod(i, [chartData[i]], image_data, [c.r, c.g, c.b, 0.5], flag)
     }
     // make sure the image data is ready
     let nIntervId;
@@ -641,6 +825,14 @@ function prepareColorPixels(chartData, renderMethod) {
     }, 1000);
 }
 
+function getHueDiff(hsl_0, hsl_1) {
+    let hue_diff = Math.abs(hsl_0.h - hsl_1.h)
+    if (hue_diff > 180) {
+        hue_diff = 360 - hue_diff
+    }
+    if (isNaN(hue_diff)) return 180
+    return +hue_diff.toFixed(0)
+}
 
 /** download file **/
 
@@ -701,4 +893,107 @@ function svg2Png(svg, divObj) {
     // set it as the source of the img element
     image.src = image64;
 
+}
+
+/**
+ * Returns a random number between min (inclusive) and max (exclusive)
+ */
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+}
+function sampleFromGaussian(num, mean, std) {
+    let data = new Array(num),
+        tmp = 1 / (Math.sqrt(2 * Math.PI) * std)
+    for (let i = 0; i < num; i++) {
+        let x = getRandomArbitrary(mean - 3 * std, mean + 3 * std)
+        data[i] = tmp * Math.exp(-(x - mean) * (x - mean) / (2 * std * std))
+    }
+    return data
+}
+
+/**
+ * Gamma function
+ * https://blog.csdn.net/A_Pointer/article/details/108021352?spm=1001.2101.3001.6650.5&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-5-108021352-blog-132936922.235%5Ev40%5Epc_relevant_3m_sort_dl_base1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-5-108021352-blog-132936922.235%5Ev40%5Epc_relevant_3m_sort_dl_base1&utm_relevant_index=10
+ */
+//伽马函数（辅助函数，用于求解贝塞尔函数,任意阶数）
+//x 变量值
+//setAbsRelaErr 相对误差绝对值
+function gammaFunc(x, setAbsRelaErr = 0.0001) {
+    //初始条件判断
+    if (x == 0) return 0
+    if (Math.abs(1.0 - x) < 0.00001) {
+        return 1.0;
+    } else if (Math.abs(x - 0.5) < 0.00001) {
+        return Math.sqrt(3.1415926);
+    }
+
+    //递归求取伽马函数值
+    if (x > 1.0) {
+        return (x - 1) * gammaFunc(x - 1, setAbsRelaErr);
+    } else if (x < 0.0) {
+        return gammaFunc(x + 1, setAbsRelaErr) / x;
+    }
+
+    let res = 0.0;
+    let temp = 1.0;
+    let check = 0.0;
+    let i = 1;
+    while (Math.abs((check - temp) / temp) > setAbsRelaErr) {
+        check = temp;
+        temp *= i / (x - 1 + i);
+        i++;
+    }
+    res = temp * Math.pow(i, x - 1);
+
+    return res;
+}
+
+// https://www.jianshu.com/p/3759d67ec5d4
+function gammaDist(x, alpha, lambda) {
+    let gamma_alpha = gammaFunc(alpha)
+    return Math.pow(lambda, alpha) / gamma_alpha * Math.pow(x, alpha - 1) * Math.pow(Math.E, -lambda * x)
+}
+
+
+
+function checkHistData(histData, pixelRate) {
+
+    if (histData.length < 2) return true
+
+    let pixel_arr = {}
+    for (let i = 0; i < histData.length; i++) {
+        for (let j = 0; j < histData[i].length; j++) {
+            let y = Math.round(axis_y(histData[i][j]))
+            // if (y === 0) continue
+            if (pixel_arr[j] === undefined) pixel_arr[j] = {}
+            if (pixel_arr[j][y] === undefined) pixel_arr[j][y] = []
+            for (let k = y; k < svg_height; k++) {
+                if (pixel_arr[j][k] === undefined) pixel_arr[j][k] = []
+                pixel_arr[j][k].push(i)
+            }
+        }
+    }
+
+    let pixel_sum = 0
+    let pixels_num_arr = {}
+    for (let y in pixel_arr) {
+        for (let x in pixel_arr[y]) {
+            if (pixel_arr[y][x].length === 0) continue
+            let key = pixel_arr[y][x].join("-")
+            if (!pixels_num_arr[key]) pixels_num_arr[key] = []
+            pixels_num_arr[key].push([(+y), (+x)])
+            pixel_sum++
+
+        }
+    }
+
+    let str = {}
+    for (let key in pixels_num_arr) {
+        str[key] = pixels_num_arr[key].length + " , " + (pixels_num_arr[key].length / pixel_sum).toFixed(2)
+        console.log(str, pixel_sum);
+        if (pixels_num_arr[key].length / pixel_sum < pixelRate) {
+            return false
+        }
+    }
+    return true
 }
